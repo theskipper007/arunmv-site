@@ -1,0 +1,20 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Narrow serif measure for long-form pages like About. */
+  prose?: boolean;
+}
+const { title, description, prose = false } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div
+    class="mx-auto px-6 py-16"
+    style={prose ? "max-width: var(--prose-width);" : "max-width: var(--content-max);"}
+  >
+    <slot />
+  </div>
+</BaseLayout>

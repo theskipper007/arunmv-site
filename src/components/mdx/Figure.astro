@@ -1,0 +1,38 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  src: ImageMetadata | string;
+  alt: string;
+  caption?: string;
+  width?: number;
+  height?: number;
+}
+
+const { src, alt, caption, width, height } = Astro.props;
+const isLocal = typeof src !== "string";
+---
+
+<figure class="my-8">
+  {
+    isLocal ? (
+      <Image src={src as ImageMetadata} alt={alt} class="w-full rounded-[var(--radius-md)]" />
+    ) : (
+      <img
+        src={src as string}
+        alt={alt}
+        width={width}
+        height={height}
+        loading="lazy"
+        decoding="async"
+        class="w-full rounded-[var(--radius-md)]"
+      />
+    )
+  }
+  {
+    caption && (
+      <figcaption class="mt-2 text-center font-mono text-xs text-faint">{caption}</figcaption>
+    )
+  }
+</figure>

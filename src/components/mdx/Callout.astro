@@ -1,0 +1,33 @@
+---
+import { Info, Lightbulb, TriangleAlert, CircleAlert } from "@lucide/astro";
+
+interface Props {
+  type?: "note" | "tip" | "warning" | "danger";
+  title?: string;
+}
+
+const { type = "note", title } = Astro.props;
+
+const config = {
+  note: { Icon: Info, label: "Note", accent: "var(--color-accent)" },
+  tip: { Icon: Lightbulb, label: "Tip", accent: "#2E8B57" },
+  warning: { Icon: TriangleAlert, label: "Warning", accent: "#C9821B" },
+  danger: { Icon: CircleAlert, label: "Heads up", accent: "#C2402F" },
+} as const;
+
+const { Icon, label, accent } = config[type];
+---
+
+<aside
+  class="my-6 rounded-[var(--radius-md)] border border-border bg-surface p-4"
+  style={`border-left: 3px solid ${accent};`}
+  role="note"
+>
+  <p class="m-0 flex items-center gap-2 font-sans text-sm font-semibold text-ink">
+    <Icon size={16} stroke-width={1.5} style={`color:${accent}`} />
+    {title ?? label}
+  </p>
+  <div class="callout-body mt-2 text-[0.95rem] leading-relaxed text-muted">
+    <slot />
+  </div>
+</aside>

@@ -1,0 +1,124 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import Breadcrumb from "../components/content/Breadcrumb.astro";
+import CategoryPill from "../components/content/CategoryPill.astro";
+import Tag from "../components/content/Tag.astro";
+import SeriesNav from "../components/content/SeriesNav.astro";
+import RelatedPosts from "../components/content/RelatedPosts.astro";
+import TableOfContents from "../components/content/TableOfContents.tsx";
+import ReadingProgress from "../components/content/ReadingProgress.tsx";
+import type { Heading } from "../components/content/TableOfContents.tsx";
+import { formatDate, readingMinutes, categoryLabel, type Post } from "../lib/collections";
+import { SITE, ogImage } from "../lib/seo";
+
+interface Props {
+  post: Post;
+  headings: Heading[];
+  related: Post[];
+  series?: { name: string; parts: Post[] };
+}
+const { post, headings, related, series } = Astro.props;
+const { title, description, pubDate, updatedDate, category, tags } = post.data;
+const minutes = readingMinutes(post);
+
+const blogPosting = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: title,
+  description,
+  datePublished: pubDate.toISOString(),
+  dateModified: (updatedDate ?? pubDate).toISOString(),
+  author: { "@type": "Person", name: SITE.author, url: `${SITE.url}/about` },
+  publisher: { "@type": "Person", name: SITE.author },
+  mainEntityOfPage: Astro.url.href,
+  articleSection: categoryLabel(category),
+  keywords: tags.join(", "),
+  wordCount: (post.body ?? "").split(/\s+/).length,
+  image: ogImage(post.id),
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  type="article"
+  image={ogImage(post.id)}
+  publishedTime={pubDate.toISOString()}
+  modifiedTime={(updatedDate ?? pubDate).toISOString()}
+  schema={[blogPosting]}
+>
+  <ReadingProgress client:idle />
+
+  <div class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
+    <Breadcrumb
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Blog", href: "/blog" },
+        { label: title },
+      ]}
+    />
+
+    <header class="mx-auto mt-8 max-w-[68ch]">
+      <CategoryPill category={category} />
+      <h1
+        class="mt-4 font-serif text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl"
+      >
+        {title}
+      </h1>
+      <p class="mt-4 text-lg text-muted">{description}</p>
+      <p class="mt-5 font-mono text-xs text-faint">
+        <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+        {updatedDate && <> · updated {formatDate(updatedDate)}</>}
+        · {minutes} min read
+      </p>
+    </header>
+
+    <div class="mt-10 lg:grid lg:grid-cols-[1fr_16rem] lg:gap-12">
+      <article class="prose mx-auto w-full max-w-[68ch]" data-pagefind-body>
+        {series && <SeriesNav seriesName={series.name} parts={series.parts} currentId={post.id} />}
+        <slot />
+
+        <hr />
+        <div class="flex flex-wrap gap-x-3 gap-y-2">
+          {tags.map((tag) => <Tag tag={tag} />)}
+        </div>
+      </article>
+
+      <aside class="hidden lg:block">
+        <div class="sticky top-24">
+          <TableOfContents headings={headings} client:idle />
+        </div>
+      </aside>
+    </div>
+
+    <div class="mx-auto max-w-[68ch]">
+      <RelatedPosts posts={related} />
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // Add copy buttons to code blocks; re-run after View Transitions.
+  function addCopyButtons() {
+    document.querySelectorAll<HTMLPreElement>(".prose pre").forEach((pre) => {
+      if (pre.querySelector(".copy-btn")) return;
+      pre.style.position = "relative";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className =
+        "copy-btn absolute right-2 top-2 rounded border border-border bg-surface px-2 py-1 font-mono text-[0.7rem] text-muted opacity-0 transition-opacity hover:text-ink";
+      btn.textContent = "copy";
+      btn.setAttribute("aria-label", "Copy code");
+      pre.addEventListener("mouseenter", () => (btn.style.opacity = "1"));
+      pre.addEventListener("mouseleave", () => (btn.style.opacity = "0"));
+      btn.addEventListener("click", async () => {
+        await navigator.clipboard.writeText(pre.innerText.replace(/copy$/, ""));
+        btn.textContent = "copied";
+        setTimeout(() => (btn.textContent = "copy"), 1500);
+      });
+      pre.appendChild(btn);
+    });
+  }
+  addCopyButtons();
+  document.addEventListener("astro:page-load", addCopyButtons);
+</script>

@@ -1,0 +1,46 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import CategoryNav from "../../../components/content/CategoryNav.astro";
+import PostCard from "../../../components/content/PostCard.astro";
+import {
+  getPublishedPosts,
+  postsByCategory,
+  categoryLabel,
+  CATEGORY_ORDER,
+  type Category,
+} from "../../../lib/collections";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const posts = await getPublishedPosts();
+  return CATEGORY_ORDER.map((category) => ({
+    params: { category },
+    props: { posts: postsByCategory(posts, category), category },
+  }));
+};
+
+interface Props {
+  posts: Awaited<ReturnType<typeof getPublishedPosts>>;
+  category: Category;
+}
+const { posts, category } = Astro.props;
+const label = categoryLabel(category);
+---
+
+<BaseLayout title={`${label} — Blog`} description={`Posts in ${label}.`}>
+  <div class="mx-auto px-6 py-16" style="max-width: var(--content-max);">
+    <header class="reveal">
+      <h1 class="text-3xl font-bold tracking-tight text-ink sm:text-4xl">{label}</h1>
+      <p class="mt-3 font-mono text-sm text-faint">{posts.length} post{posts.length === 1 ? "" : "s"}</p>
+    </header>
+
+    <div class="mt-10">
+      <CategoryNav active={category} />
+    </div>
+
+    <div class="mt-2">
+      {posts.map((post) => <PostCard post={post} />)}
+      {posts.length === 0 && <p class="py-16 text-faint">Nothing here yet.</p>}
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,35 @@
+---
+import { Layers } from "@lucide/astro";
+import type { Post } from "../../lib/collections";
+
+interface Props {
+  seriesName: string;
+  parts: Post[];
+  currentId: string;
+}
+const { seriesName, parts, currentId } = Astro.props;
+const currentIndex = parts.findIndex((p) => p.id === currentId);
+---
+
+<aside class="my-8 rounded-[var(--radius-md)] border border-border bg-surface p-5">
+  <p class="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-faint">
+    <Layers size={14} stroke-width={1.5} />
+    Series · {seriesName} · Part {currentIndex + 1} of {parts.length}
+  </p>
+  <ol class="mt-3 space-y-1.5">
+    {
+      parts.map((p, i) => (
+        <li class="flex items-baseline gap-2 text-sm">
+          <span class="font-mono text-xs text-faint">{i + 1}.</span>
+          {p.id === currentId ? (
+            <span class="text-ink">{p.data.title}</span>
+          ) : (
+            <a href={`/blog/${p.id}`} class="text-muted no-underline hover:text-accent">
+              {p.data.title}
+            </a>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</aside>

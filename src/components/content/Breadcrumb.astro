@@ -1,0 +1,46 @@
+---
+import JsonLd from "../seo/JsonLd.astro";
+import { abs } from "../../lib/seo";
+
+interface Crumb {
+  label: string;
+  href?: string;
+}
+interface Props {
+  items: Crumb[];
+}
+const { items } = Astro.props;
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: items.map((c, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: c.label,
+    ...(c.href ? { item: abs(c.href) } : {}),
+  })),
+};
+---
+
+<nav aria-label="Breadcrumb" class="font-mono text-xs text-faint">
+  <ol class="flex flex-wrap items-center gap-1.5">
+    {
+      items.map((c, i) => (
+        <li class="flex items-center gap-1.5">
+          {c.href && i < items.length - 1 ? (
+            <a href={c.href} class="no-underline hover:text-accent">
+              {c.label}
+            </a>
+          ) : (
+            <span aria-current="page" class="text-muted">
+              {c.label}
+            </span>
+          )}
+          {i < items.length - 1 && <span aria-hidden="true">/</span>}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+<JsonLd schema={schema} />

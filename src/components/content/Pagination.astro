@@ -1,0 +1,62 @@
+---
+interface Props {
+  currentPage: number;
+  lastPage: number;
+  base: string; // page 1 href, e.g. "/blog"
+  pageBase?: string; // prefix for pages > 1, default `${base}/page`
+}
+const { currentPage, lastPage, base, pageBase } = Astro.props;
+const pagedPrefix = pageBase ?? `${base}/page`;
+
+const pageHref = (n: number) => (n === 1 ? base : `${pagedPrefix}/${n}`);
+const pages = Array.from({ length: lastPage }, (_, i) => i + 1);
+const prev = currentPage > 1 ? pageHref(currentPage - 1) : null;
+const next = currentPage < lastPage ? pageHref(currentPage + 1) : null;
+---
+
+{
+  lastPage > 1 && (
+    <nav aria-label="Pagination" class="mt-16 flex items-center justify-center gap-2">
+      <a
+        href={prev ?? undefined}
+        aria-disabled={!prev}
+        class:list={[
+          "rounded-[var(--radius-md)] border border-border px-3 py-2 font-mono text-sm no-underline transition-colors",
+          prev
+            ? "text-muted hover:border-accent hover:text-accent"
+            : "pointer-events-none text-faint opacity-40",
+        ]}
+      >
+        ← Prev
+      </a>
+      <div class="flex gap-1">
+        {pages.map((n) => (
+          <a
+            href={pageHref(n)}
+            aria-current={n === currentPage ? "page" : undefined}
+            class:list={[
+              "inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] font-mono text-sm no-underline transition-colors",
+              n === currentPage
+                ? "border border-accent text-accent"
+                : "text-muted hover:text-ink",
+            ]}
+          >
+            {n}
+          </a>
+        ))}
+      </div>
+      <a
+        href={next ?? undefined}
+        aria-disabled={!next}
+        class:list={[
+          "rounded-[var(--radius-md)] border border-border px-3 py-2 font-mono text-sm no-underline transition-colors",
+          next
+            ? "text-muted hover:border-accent hover:text-accent"
+            : "pointer-events-none text-faint opacity-40",
+        ]}
+      >
+        Next →
+      </a>
+    </nav>
+  )
+}

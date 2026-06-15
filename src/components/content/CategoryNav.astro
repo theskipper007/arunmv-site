@@ -1,0 +1,36 @@
+---
+import { CATEGORY_ORDER, categoryLabel, type Category } from "../../lib/collections";
+
+interface Props {
+  active?: Category | "all";
+}
+const { active = "all" } = Astro.props;
+
+const tabs: { label: string; href: string; key: Category | "all" }[] = [
+  { label: "All", href: "/blog", key: "all" },
+  ...CATEGORY_ORDER.map((c) => ({
+    label: categoryLabel(c),
+    href: `/blog/category/${c}`,
+    key: c,
+  })),
+];
+---
+
+<nav aria-label="Categories" class="flex flex-wrap gap-1 border-b border-border pb-px">
+  {
+    tabs.map((t) => (
+      <a
+        href={t.href}
+        aria-current={t.key === active ? "page" : undefined}
+        class:list={[
+          "-mb-px border-b-2 px-3 py-2 text-sm no-underline transition-colors",
+          t.key === active
+            ? "border-accent text-ink"
+            : "border-transparent text-muted hover:text-ink",
+        ]}
+      >
+        {t.label}
+      </a>
+    ))
+  }
+</nav>

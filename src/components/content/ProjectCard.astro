@@ -1,0 +1,36 @@
+---
+import { ArrowUpRight } from "@lucide/astro";
+import type { Project } from "../../lib/collections";
+
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+const { title, summary, stack } = project.data;
+---
+
+<a
+  href={`/projects/${project.id}`}
+  class="reveal group flex h-full flex-col rounded-[var(--radius-lg)] border border-border bg-surface p-6 no-underline transition-colors hover:border-accent/40"
+>
+  <div class="flex items-start justify-between gap-2">
+    <h3 class="text-lg font-semibold text-ink transition-colors group-hover:text-accent">
+      {title}
+    </h3>
+    <ArrowUpRight
+      size={18}
+      stroke-width={1.5}
+      class="shrink-0 text-faint transition-colors group-hover:text-accent"
+    />
+  </div>
+  <p class="mt-2 text-sm text-muted">{summary}</p>
+  <ul class="mt-4 flex flex-wrap gap-1.5">
+    {
+      stack.slice(0, 5).map((s) => (
+        <li class="rounded-[var(--radius-pill)] border border-border px-2 py-0.5 font-mono text-[0.7rem] text-faint">
+          {s}
+        </li>
+      ))
+    }
+  </ul>
+</a>

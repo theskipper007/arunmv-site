@@ -1,0 +1,33 @@
+---
+import CategoryPill from "./CategoryPill.astro";
+import { formatDate, type Post } from "../../lib/collections";
+
+interface Props {
+  posts: Post[];
+}
+const { posts } = Astro.props;
+---
+
+{
+  posts.length > 0 && (
+    <section aria-label="Related posts" class="mt-12">
+      <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Related reading</h2>
+      <div class="mt-4 grid gap-4 sm:grid-cols-3">
+        {posts.map((post) => (
+          <a
+            href={`/blog/${post.id}`}
+            class="group flex h-full flex-col gap-2 rounded-[var(--radius-md)] border border-border p-4 no-underline transition-colors hover:border-accent/40"
+          >
+            <CategoryPill category={post.data.category} size="sm" />
+            <span class="font-medium text-ink transition-colors group-hover:text-accent">
+              {post.data.title}
+            </span>
+            <span class="mt-auto font-mono text-xs text-faint">
+              {formatDate(post.data.pubDate)}
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )
+}

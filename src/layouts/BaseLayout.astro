@@ -1,0 +1,51 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Arun MV",
+  description = "Practical, reliable, cost-aware AI engineering — writing and selected work.",
+} = Astro.props;
+
+const titleTemplate = title === "Arun MV" ? title : `${title} — Arun MV`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{titleTemplate}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={Astro.url.href} />
+    <meta name="theme-color" content="#FBFAF8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />
+
+    {/* Set theme before paint to avoid a flash (spec §7). */}
+    <script is:inline>
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = stored ?? (prefersDark ? "dark" : "light");
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <a href="#main" class="sr-only focus:not-sr-only">Skip to content</a>
+    <header>
+      <!-- SiteHeader / Nav island lands here in Phase 4 -->
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer>
+      <!-- Footer lands here in Phase 4 -->
+    </footer>
+  </body>
+</html>

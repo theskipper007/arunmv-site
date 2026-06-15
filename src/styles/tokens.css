@@ -1,0 +1,48 @@
+/* src/styles/tokens.css — single source of truth for design tokens (spec §7) */
+:root {
+  /* color — light */
+  --color-paper:    #FBFAF8;
+  --color-surface:  #FFFFFF;
+  --color-ink:      #1A1A18;
+  --color-muted:    #5C5B55;
+  --color-faint:    #8A8980;
+  --color-border:   rgb(0 0 0 / 0.08);
+  --color-accent:   #C25A3C;
+  --color-accent-hover: #A84A2F;
+
+  /* type */
+  --font-sans:  "Inter", system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-mono:  "JetBrains Mono", ui-monospace, monospace;
+
+  /* spacing (4px base) */
+  --space-1: 0.25rem; --space-2: 0.5rem;  --space-3: 0.75rem;
+  --space-4: 1rem;    --space-6: 1.5rem;  --space-8: 2rem;
+  --space-12: 3rem;   --space-16: 4rem;   --space-24: 6rem;
+
+  /* radius */
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px; --radius-pill: 999px;
+
+  /* motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-micro: 150ms; --dur-base: 250ms; --dur-page: 400ms;
+
+  /* layout */
+  --prose-width: 68ch;
+  --content-max: 1100px;
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --color-paper:   #111110;
+  --color-surface: #1A1A18;
+  --color-ink:     #ECEBE6;
+  --color-muted:   #A3A29B;
+  --color-faint:   #6E6D66;
+  --color-border:  rgb(255 255 255 / 0.10);
+  --color-accent:  #E0734F;
+  --color-accent-hover: #EC8A6A;
+
+  color-scheme: dark;
+}

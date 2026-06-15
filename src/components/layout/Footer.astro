@@ -1,0 +1,69 @@
+---
+import { Mail, Rss } from "@lucide/astro";
+import GithubIcon from "../ui/icons/GithubIcon.astro";
+import LinkedinIcon from "../ui/icons/LinkedinIcon.astro";
+import { SITE, NAV } from "../../lib/seo";
+
+const year = new Date().getFullYear();
+const icons = { github: GithubIcon, linkedin: LinkedinIcon, mail: Mail } as const;
+const socials = [
+  { label: "GitHub", href: SITE.github, key: "github" as const },
+  { label: "LinkedIn", href: SITE.linkedin, key: "linkedin" as const },
+  { label: "Email", href: `mailto:${SITE.email}`, key: "mail" as const },
+];
+---
+
+<footer class="mt-24 border-t border-border">
+  <div
+    class="mx-auto flex flex-col gap-6 px-6 py-10 sm:flex-row sm:items-center sm:justify-between"
+    style="max-width: var(--content-max);"
+  >
+    <div>
+      <p class="font-mono text-sm text-ink">arun mv</p>
+      <p class="mt-1 max-w-xs text-sm text-muted">{SITE.description}</p>
+    </div>
+
+    <nav aria-label="Footer" class="flex flex-col gap-3 sm:items-end">
+      <div class="flex gap-4 text-sm">
+        {
+          NAV.map((item) => (
+            <a href={item.href} class="text-muted no-underline hover:text-ink">
+              {item.label}
+            </a>
+          ))
+        }
+      </div>
+      <div class="flex items-center gap-3">
+        {
+          socials.map((s) => {
+            const Icon = icons[s.key];
+            return (
+              <a
+                href={s.href}
+                aria-label={s.label}
+                rel="me noopener"
+                target={s.key === "mail" ? undefined : "_blank"}
+                class="text-muted transition-colors hover:text-ink"
+              >
+                <Icon size={20} stroke-width={1.5} />
+              </a>
+            );
+          })
+        }
+        <a
+          href="/rss.xml"
+          aria-label="RSS feed"
+          class="text-muted transition-colors hover:text-ink"
+        >
+          <Rss size={20} stroke-width={1.5} />
+        </a>
+      </div>
+    </div>
+  </div>
+  <div
+    class="mx-auto px-6 pb-8 font-mono text-xs text-faint"
+    style="max-width: var(--content-max);"
+  >
+    © {year} Arun MV · Built with Astro
+  </div>
+</footer>

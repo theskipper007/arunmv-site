@@ -1,0 +1,66 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+// Homepage pulls live from collections — never hand-edited (spec §3).
+const posts = (await getCollection("blog", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+const projects = (await getCollection("projects"))
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
+---
+
+<BaseLayout>
+  <section class="mx-auto px-6 py-24" style="max-width: var(--content-max);">
+    <p class="font-mono text-sm text-faint">Hi, I'm Arun 👋</p>
+    <h1 class="mt-4 font-sans text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+      I build practical AI systems.
+    </h1>
+    <p class="mt-4 max-w-xl text-muted">
+      Backend/platform engineer turned applied AI — modernizing legacy systems and
+      shipping graph-grounded LLM features in production.
+    </p>
+
+    <div class="mt-16 grid gap-12 md:grid-cols-2">
+      <div>
+        <h2 class="font-mono text-xs uppercase tracking-widest text-faint">
+          Latest writing
+        </h2>
+        <ul class="mt-4 space-y-3">
+          {
+            posts.map((post) => (
+              <li>
+                <a href={`/blog/${post.id}`} class="text-ink hover:text-accent">
+                  {post.data.title}
+                </a>
+              </li>
+            ))
+          }
+          {posts.length === 0 && <li class="text-faint">No posts yet.</li>}
+        </ul>
+      </div>
+      <div>
+        <h2 class="font-mono text-xs uppercase tracking-widest text-faint">
+          Selected work
+        </h2>
+        <ul class="mt-4 space-y-3">
+          {
+            projects.map((project) => (
+              <li>
+                <a href={`/projects/${project.id}`} class="text-ink hover:text-accent">
+                  {project.data.title}
+                </a>
+              </li>
+            ))
+          }
+          {projects.length === 0 && <li class="text-faint">No projects yet.</li>}
+        </ul>
+      </div>
+    </div>
+
+    <p class="mt-24 font-mono text-xs text-faint">
+      Skeleton scaffold — see <code>docs/arun-personal-site-spec.md</code> for the full build.
+    </p>
+  </section>
+</BaseLayout>

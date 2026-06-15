@@ -1,66 +1,68 @@
 ---
+import { ArrowRight } from "@lucide/astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getCollection } from "astro:content";
+import PostCard from "../components/content/PostCard.astro";
+import ProjectCard from "../components/content/ProjectCard.astro";
+import { getPublishedPosts, getProjects } from "../lib/collections";
+import { SITE } from "../lib/seo";
 
-// Homepage pulls live from collections — never hand-edited (spec §3).
-const posts = (await getCollection("blog", ({ data }) => !data.draft))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3);
-const projects = (await getCollection("projects"))
-  .sort((a, b) => a.data.order - b.data.order)
-  .slice(0, 3);
+const posts = (await getPublishedPosts()).slice(0, 3);
+const projects = (await getProjects()).filter((p) => p.data.featured).slice(0, 3);
+const fallbackProjects = projects.length ? projects : (await getProjects()).slice(0, 3);
 ---
 
 <BaseLayout>
-  <section class="mx-auto px-6 py-24" style="max-width: var(--content-max);">
+  <section class="mx-auto px-6 pb-12 pt-20 sm:pt-28" style="max-width: var(--content-max);">
     <p class="font-mono text-sm text-faint">Hi, I'm Arun 👋</p>
-    <h1 class="mt-4 font-sans text-4xl font-bold tracking-tight text-ink sm:text-5xl">
-      I build practical AI systems.
+    <h1
+      class="mt-4 max-w-3xl font-sans font-bold leading-[1.05] tracking-tight text-ink"
+      style="font-size: clamp(2.5rem, 6vw, 3.75rem);"
+    >
+      {SITE.tagline}
     </h1>
-    <p class="mt-4 max-w-xl text-muted">
-      Backend/platform engineer turned applied AI — modernizing legacy systems and
-      shipping graph-grounded LLM features in production.
+    <p class="mt-5 max-w-xl text-lg text-muted">
+      Backend/platform engineer turned applied AI — modernizing legacy systems and shipping
+      graph-grounded LLM features in production. Practical, reliable, cost-aware.
     </p>
-
-    <div class="mt-16 grid gap-12 md:grid-cols-2">
-      <div>
-        <h2 class="font-mono text-xs uppercase tracking-widest text-faint">
-          Latest writing
-        </h2>
-        <ul class="mt-4 space-y-3">
-          {
-            posts.map((post) => (
-              <li>
-                <a href={`/blog/${post.id}`} class="text-ink hover:text-accent">
-                  {post.data.title}
-                </a>
-              </li>
-            ))
-          }
-          {posts.length === 0 && <li class="text-faint">No posts yet.</li>}
-        </ul>
-      </div>
-      <div>
-        <h2 class="font-mono text-xs uppercase tracking-widest text-faint">
-          Selected work
-        </h2>
-        <ul class="mt-4 space-y-3">
-          {
-            projects.map((project) => (
-              <li>
-                <a href={`/projects/${project.id}`} class="text-ink hover:text-accent">
-                  {project.data.title}
-                </a>
-              </li>
-            ))
-          }
-          {projects.length === 0 && <li class="text-faint">No projects yet.</li>}
-        </ul>
-      </div>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a
+        href="/blog"
+        class="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent px-4 py-2.5 text-sm font-medium text-white no-underline transition-colors hover:bg-[var(--color-accent-hover)]"
+      >
+        Read the blog <ArrowRight size={16} stroke-width={2} />
+      </a>
+      <a
+        href="/projects"
+        class="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-border px-4 py-2.5 text-sm no-underline transition-colors hover:border-accent hover:text-accent"
+      >
+        See projects
+      </a>
     </div>
+  </section>
 
-    <p class="mt-24 font-mono text-xs text-faint">
-      Skeleton scaffold — see <code>docs/arun-personal-site-spec.md</code> for the full build.
-    </p>
+  <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
+    <div class="flex items-baseline justify-between">
+      <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Latest writing</h2>
+      <a href="/blog" class="font-mono text-xs text-muted no-underline hover:text-accent">all →</a>
+    </div>
+    <div class="mt-2">
+      {posts.map((post) => <PostCard post={post} />)}
+      {posts.length === 0 && <p class="py-8 text-faint">No posts yet.</p>}
+    </div>
+  </section>
+
+  <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
+    <div class="flex items-baseline justify-between">
+      <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Selected work</h2>
+      <a href="/projects" class="font-mono text-xs text-muted no-underline hover:text-accent">
+        all →
+      </a>
+    </div>
+    <div
+      class="mt-4 grid gap-5"
+      style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"
+    >
+      {fallbackProjects.map((project) => <ProjectCard project={project} />)}
+    </div>
   </section>
 </BaseLayout>

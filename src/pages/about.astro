@@ -1,0 +1,73 @@
+---
+import { Mail } from "@lucide/astro";
+import GithubIcon from "../components/ui/icons/GithubIcon.astro";
+import LinkedinIcon from "../components/ui/icons/LinkedinIcon.astro";
+import PageLayout from "../layouts/PageLayout.astro";
+import { SITE } from "../lib/seo";
+
+const links = [
+  { label: "GitHub", href: SITE.github, Icon: GithubIcon },
+  { label: "LinkedIn", href: SITE.linkedin, Icon: LinkedinIcon },
+  { label: "Email", href: `mailto:${SITE.email}`, Icon: Mail },
+];
+---
+
+<PageLayout
+  title="About"
+  description="Backend/platform engineer turned applied AI — practical, reliable, cost-aware systems."
+  prose
+>
+  <h1 class="font-serif text-4xl font-semibold tracking-tight text-ink">About</h1>
+
+  <div class="prose mt-8">
+    <p>
+      I'm Arun — a backend and platform engineer who moved into applied AI. The throughline of
+      my work is a simple stance: <strong>practical, reliable, cost-aware AI.</strong>
+    </p>
+
+    <h2>The journey</h2>
+    <p>
+      I started on the backend, modernizing legacy systems and keeping live platforms healthy —
+      the kind of work where reliability and cost are not afterthoughts. Migrating a survey
+      platform from Node 12 (Hapi) to Node 18 (Express) cut cold-starts by roughly a third and
+      taught me how to de-risk a framework swap on something people depend on every day.
+    </p>
+    <p>
+      From there I leaned into LLM features in production: graph-grounded retrieval, review
+      intelligence pipelines, and semantic search at scale. Along the way I doubled a reputation
+      module's revenue and trimmed $5,000+/yr of cloud spend by tuning prompts and model
+      selection for cost and accuracy.
+    </p>
+
+    <h2>What I'm into now</h2>
+    <p>
+      Knowledge graphs for LLMs — modeling entities and relationships in Neo4j, episodic
+      time-aware memory with Graphiti, and hybrid semantic + structural retrieval orchestrated
+      with LangGraph. I care about where graph traversal genuinely beats embeddings, and how to
+      keep all of it observable and cost-aware.
+    </p>
+
+    <h2>How I build</h2>
+    <p>
+      Reliability first: retries, graceful degradation, and observability before cleverness.
+      I'd rather ship something legible and dependable than something flashy and brittle. The
+      same philosophy shapes this site — quiet, fast, and built to last.
+    </p>
+  </div>
+
+  <div class="mt-10 flex gap-4">
+    {
+      links.map(({ label, href, Icon }) => (
+        <a
+          href={href}
+          aria-label={label}
+          target={href.startsWith("mailto") ? undefined : "_blank"}
+          rel="me noopener"
+          class="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm no-underline transition-colors hover:border-accent hover:text-accent"
+        >
+          <Icon size={16} stroke-width={1.5} /> {label}
+        </a>
+      ))
+    }
+  </div>
+</PageLayout>

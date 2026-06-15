@@ -1,0 +1,113 @@
+---
+import type { GetStaticPaths } from "astro";
+import { render } from "astro:content";
+import { ExternalLink } from "@lucide/astro";
+import GithubIcon from "../../components/ui/icons/GithubIcon.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Breadcrumb from "../../components/content/Breadcrumb.astro";
+import { getProjects, type Project } from "../../lib/collections";
+import { SITE, ogImage } from "../../lib/seo";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const projects = await getProjects();
+  return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
+};
+
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+const d = project.data;
+const { Content } = await render(project);
+
+const sections = [
+  { label: "Problem", body: d.problem },
+  { label: "Approach", body: d.approach },
+  { label: "Result", body: d.result },
+  { label: "Learnings", body: d.learnings },
+];
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  name: d.title,
+  description: d.summary,
+  author: { "@type": "Person", name: SITE.author, url: `${SITE.url}/about` },
+  programmingLanguage: d.stack.join(", "),
+  ...(d.repo ? { codeRepository: d.repo } : {}),
+};
+---
+
+<BaseLayout
+  title={d.title}
+  description={d.summary}
+  image={ogImage(project.id)}
+  schema={[schema]}
+>
+  <div class="mx-auto px-6 py-10" style="max-width: var(--prose-width);" data-pagefind-body>
+    <Breadcrumb
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Projects", href: "/projects" },
+        { label: d.title },
+      ]}
+    />
+
+    <header class="mt-8">
+      <h1 class="text-3xl font-bold tracking-tight text-ink sm:text-4xl">{d.title}</h1>
+      <p class="mt-3 text-lg text-muted">{d.summary}</p>
+
+      <ul class="mt-5 flex flex-wrap gap-1.5">
+        {
+          d.stack.map((s) => (
+            <li class="rounded-[var(--radius-pill)] border border-border px-2.5 py-1 font-mono text-xs text-faint">
+              {s}
+            </li>
+          ))
+        }
+      </ul>
+
+      {
+        (d.repo || d.demo) && (
+          <div class="mt-5 flex gap-3">
+            {d.repo && (
+              <a
+                href={d.repo}
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm no-underline transition-colors hover:border-accent hover:text-accent"
+              >
+                <GithubIcon size={16} /> Repo
+              </a>
+            )}
+            {d.demo && (
+              <a
+                href={d.demo}
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm no-underline transition-colors hover:border-accent hover:text-accent"
+              >
+                <ExternalLink size={16} stroke-width={1.5} /> Demo
+              </a>
+            )}
+          </div>
+        )
+      }
+    </header>
+
+    <div class="mt-10 space-y-8">
+      {
+        sections.map((s) => (
+          <section class="reveal">
+            <h2 class="font-mono text-xs uppercase tracking-widest text-accent">{s.label}</h2>
+            <p class="mt-2 text-ink">{s.body}</p>
+          </section>
+        ))
+      }
+    </div>
+
+    <div class="prose mt-12">
+      <Content />
+    </div>
+  </div>
+</BaseLayout>

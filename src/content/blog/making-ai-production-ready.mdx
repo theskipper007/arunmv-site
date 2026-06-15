@@ -1,0 +1,35 @@
+---
+title: "Making AI production-ready isn't about the model"
+description: "Reliability, retries, observability, and cost discipline matter more than the last point of benchmark accuracy."
+pubDate: 2026-06-01
+category: tech-opinions
+audience: technical
+tags: ["reliability", "llmops", "cost", "observability"]
+featured: false
+draft: false
+---
+
+> **TL;DR.** The hard part of shipping AI isn't picking the model — it's everything around it:
+> retries, fallbacks, observability, and keeping the bill sane. That's where I spend my time.
+
+A lot of teams obsess over which model scores highest on a leaderboard. In production, that's
+rarely the bottleneck. The bottleneck is the system around the model.
+
+## Reliability first
+
+LLM calls fail — rate limits, timeouts, malformed JSON. Treat them like any flaky network
+dependency: bounded retries with backoff, a deterministic fallback, and a circuit breaker so one
+slow provider doesn't take down the request path. Doing this carefully cut our error rate by
+about 25%.
+
+## Make it observable
+
+You can't fix what you can't see. Log prompts, model, latency, token counts, and outcome for
+every call. When quality regresses, you want to diff prompts and inputs — not guess.
+
+## Spend like it's your money
+
+Model selection is a cost lever, not just a quality lever. Routing easy requests to a cheaper
+model and reserving the expensive one for hard cases saved us $5,000+/yr without users noticing.
+
+The unglamorous work is the work. The model is the easy part.

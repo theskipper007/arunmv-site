@@ -1,0 +1,38 @@
+---
+title: "Episodic memory for agents with Graphiti"
+description: "Time-aware memory lets an agent answer not just what is true, but what was true when — without re-indexing the world."
+pubDate: 2026-05-20
+category: ai-engineering
+audience: technical
+tags: ["knowledge-graphs", "graphiti", "memory", "agents"]
+series:
+  name: "Knowledge graphs for LLMs"
+  order: 2
+featured: false
+draft: false
+---
+
+> **TL;DR.** A static graph tells you what's true now. An *episodic* graph tells you what was true
+> at a point in time, which is what agents actually need to reason about change.
+
+In [part one](/blog/hello-world) we argued that relationships beat raw similarity. But real
+knowledge isn't static — facts get superseded, preferences change, decisions get revised.
+
+## The problem with overwriting
+
+If your memory layer just upserts the latest value, you lose history. An agent asked "why did we
+switch databases?" can't answer, because the *previous* state is gone.
+
+<Callout type="tip" title="Model time as a first-class edge">
+Instead of overwriting, append episodes with validity intervals. The "current" view is a query
+over the latest valid facts; the "historical" view is the same query at a past timestamp.
+</Callout>
+
+## Bi-temporal in practice
+
+Graphiti tracks both when something happened and when the system learned about it. That
+bi-temporal model is what lets an agent reconstruct the world as it was — essential for audits,
+debugging, and explaining its own past decisions.
+
+The cost is more edges and more careful queries. The payoff is memory that reflects reality
+instead of flattening it.

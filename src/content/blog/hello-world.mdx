@@ -1,17 +1,55 @@
 ---
 title: "Why knowledge graphs beat vector-only RAG"
-description: "A short TL;DR-first note on where graph traversal grounds LLM answers better than embeddings alone."
-pubDate: 2026-06-15
+description: "Vector-only RAG returns flat, context-poor chunks. Modeling entities and relationships lets you traverse why things connect."
+pubDate: 2026-05-02
 category: ai-engineering
 audience: technical
-tags: ["rag", "knowledge-graphs", "neo4j"]
+tags: ["rag", "knowledge-graphs", "neo4j", "llm"]
+series:
+  name: "Knowledge graphs for LLMs"
+  order: 1
 featured: true
 draft: false
 ---
 
-> **TL;DR.** Vector-only RAG returns flat, context-poor chunks. Modeling entities and
-> relationships in a graph lets you traverse *why* things connect, which grounds LLM
-> answers in structure — not just similarity.
+> **TL;DR.** Vector-only RAG returns flat, context-poor chunks ranked purely by similarity.
+> Modeling entities and relationships in a graph lets you traverse *why* things connect — which
+> grounds LLM answers in structure, not just nearness. This post sets up the series.
 
-This is a seed post that proves the blog collection compiles. Real content lands in
-later phases (see the spec's "Knowledge graphs for LLMs" series idea).
+Retrieval-augmented generation usually starts the same way: chunk your documents, embed the
+chunks, and at query time pull back the top-k nearest neighbours. It works, until it doesn't.
+
+## Where similarity runs out
+
+Embeddings are great at "find me text that looks like this." They are poor at "find me the thing
+that *caused* this," or "walk from this entity to everything it depends on." Those are
+relationship questions, and relationships are exactly what a flat vector index throws away.
+
+<Callout type="note" title="The failure mode">
+When a user asks a multi-hop question, similarity search returns several chunks that each look
+relevant in isolation but don't connect. The model then has to *guess* the connective tissue —
+and that's where hallucinations creep in.
+</Callout>
+
+## What a graph adds
+
+A knowledge graph stores entities as nodes and relationships as typed edges. Retrieval becomes a
+traversal: start from the entities mentioned in the query, then expand along edges that matter.
+
+```ts
+// Pseudo-retrieval: seed from semantic match, expand by structure
+const seeds = await vectorSearch(query, { k: 5 });
+const subgraph = await graph.expand(seeds, {
+  hops: 2,
+  edgeTypes: ["DEPENDS_ON", "CAUSED_BY", "PART_OF"],
+});
+return rank(subgraph, query); // hybrid: semantic + structural
+```
+
+The result is context the model can actually reason over: not ten loose snippets, but a connected
+neighbourhood with explicit relationships.
+
+## What's next in this series
+
+We'll build this up across the series — modeling entities in Neo4j, adding episodic time-aware
+memory with Graphiti, and tuning hybrid retrieval so it stays fast and cost-aware.

@@ -1,0 +1,14 @@
+---
+title: "Node 12 → Node 18 platform migration"
+summary: "De-risked a runtime + framework swap on a live survey platform, cutting cold starts ~30%."
+problem: "A live survey platform was stuck on Node 12 (Hapi) — end-of-life runtime, slow cold starts, and mounting security risk."
+approach: "Incremental migration to Node 18 (Express): mapped Hapi plugins to middleware, added contract tests around critical routes, and rolled out behind a canary to catch regressions before full cutover."
+stack: ["Node.js", "Express", "Hapi", "Jest", "AWS Lambda"]
+result: "~30% lower cold starts, a supported runtime, and zero downtime during cutover."
+learnings: "How to de-risk a framework swap on something people depend on daily: contract tests and canaries beat big-bang rewrites every time."
+order: 2
+featured: true
+---
+
+The work that doesn't make headlines but keeps everything running. The hardest part wasn't the
+code — it was sequencing the change so the live platform never noticed.

@@ -6,6 +6,7 @@ import { SITE } from "../../lib/seo";
 const posts = await getCollection("blog");
 const projects = await getCollection("projects");
 
+// Keys map to /og/<key>.png — astro-og-canvas appends the .png extension.
 const pages: Record<string, { title: string; description: string }> = {
   default: { title: SITE.name, description: SITE.tagline },
 };

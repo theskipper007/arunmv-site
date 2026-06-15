@@ -52,4 +52,28 @@
     background-color: var(--color-accent);
     color: var(--color-paper);
   }
+
+  /* Gentle cross-fade on theme switch — cheap paint-only properties. */
+  @media (prefers-reduced-motion: no-preference) {
+    body,
+    header,
+    footer {
+      transition:
+        background-color var(--dur-base) var(--ease),
+        border-color var(--dur-base) var(--ease),
+        color var(--dur-base) var(--ease);
+    }
+  }
+
+  /* Honor reduced-motion globally (spec §6, §12). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

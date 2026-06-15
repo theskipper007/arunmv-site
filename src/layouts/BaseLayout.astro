@@ -1,5 +1,10 @@
 ---
+// Self-hosted variable fonts (subset, font-display: swap via Fontsource).
+import "@fontsource-variable/inter";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/jetbrains-mono";
 import "../styles/global.css";
+import ThemeToggle from "../components/ui/ThemeToggle.tsx";
 
 interface Props {
   title?: string;
@@ -37,15 +42,33 @@ const titleTemplate = title === "Arun MV" ? title : `${title} — Arun MV`;
     </script>
   </head>
   <body>
-    <a href="#main" class="sr-only focus:not-sr-only">Skip to content</a>
-    <header>
-      <!-- SiteHeader / Nav island lands here in Phase 4 -->
+    <a
+      href="#main"
+      class="sr-only rounded-[var(--radius-md)] bg-surface px-4 py-2 focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50"
+      >Skip to content</a
+    >
+    <header class="border-b border-border">
+      <div
+        class="mx-auto flex h-16 items-center justify-between px-6"
+        style="max-width: var(--content-max);"
+      >
+        <a href="/" class="font-mono text-sm font-medium text-ink no-underline hover:text-accent">
+          arun&nbsp;mv
+        </a>
+        {/* Full nav lands in Phase 4; the theme toggle hydrates immediately. */}
+        <ThemeToggle client:load />
+      </div>
     </header>
     <main id="main">
       <slot />
     </main>
-    <footer>
-      <!-- Footer lands here in Phase 4 -->
+    <footer class="mt-24 border-t border-border">
+      <div
+        class="mx-auto flex h-16 items-center px-6 font-mono text-xs text-faint"
+        style="max-width: var(--content-max);"
+      >
+        © {new Date().getFullYear()} Arun MV
+      </div>
     </footer>
   </body>
 </html>

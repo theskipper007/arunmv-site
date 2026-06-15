@@ -10,10 +10,10 @@
   --color-accent:   #C25A3C;
   --color-accent-hover: #A84A2F;
 
-  /* type */
-  --font-sans:  "Inter", system-ui, sans-serif;
-  --font-serif: "Newsreader", Georgia, serif;
-  --font-mono:  "JetBrains Mono", ui-monospace, monospace;
+  /* type — Fontsource registers the "<Name> Variable" families */
+  --font-sans:  "Inter Variable", "Inter", system-ui, sans-serif;
+  --font-serif: "Newsreader Variable", "Newsreader", Georgia, serif;
+  --font-mono:  "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
 
   /* spacing (4px base) */
   --space-1: 0.25rem; --space-2: 0.5rem;  --space-3: 0.75rem;

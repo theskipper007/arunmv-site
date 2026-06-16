@@ -39,7 +39,10 @@ const lastPage = Math.max(1, Math.ceil(listed.length / PAGE_SIZE));
       <CategoryNav active="all" />
     </div>
 
-    <div class="mt-2">
+    <div
+      class="mt-6 grid gap-5"
+      style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"
+    >
       {pageItems.map((post) => <PostCard post={post} />)}
       {pageItems.length === 0 && <p class="py-16 text-faint">No posts yet.</p>}
     </div>

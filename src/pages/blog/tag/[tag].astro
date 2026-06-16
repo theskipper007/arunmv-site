@@ -31,7 +31,10 @@ const { posts, tag } = Astro.props;
       </p>
     </header>
 
-    <div class="mt-10">
+    <div
+      class="mt-10 grid gap-5"
+      style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"
+    >
       {posts.map((post) => <PostCard post={post} />)}
     </div>
   </div>

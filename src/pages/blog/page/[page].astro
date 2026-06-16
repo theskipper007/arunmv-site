@@ -32,7 +32,10 @@ const { page } = Astro.props;
       <CategoryNav active="all" />
     </div>
 
-    <div class="mt-2">
+    <div
+      class="mt-6 grid gap-5"
+      style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"
+    >
       {page.data.map((post) => <PostCard post={post} />)}
     </div>
 

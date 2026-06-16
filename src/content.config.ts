@@ -15,6 +15,10 @@ const blog = defineCollection({
       tags: z.array(z.string()).default([]),
       series: z.object({ name: z.string(), order: z.number() }).optional(),
       heroImage: image().optional(),
+      // Path to a looping cover video in /public (e.g. "/covers/foo.mp4" or .webm).
+      // When set, the cover renders as a muted autoplay loop. Falls back to
+      // heroImage, then to an animated per-topic gradient.
+      heroVideo: z.string().optional(),
       featured: z.boolean().default(false),
       draft: z.boolean().default(false),
     }),

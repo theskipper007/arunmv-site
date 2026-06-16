@@ -1,0 +1,165 @@
+---
+// Animated "build in progress" placeholder for sections without content yet.
+interface Props {
+  title?: string;
+  message?: string;
+  compact?: boolean;
+}
+const {
+  title = "Coming soon",
+  message = "Case studies are being written up. Check back shortly.",
+  compact = false,
+} = Astro.props;
+---
+
+<div class:list={["bip", { "bip-compact": compact }]}>
+  <div class="bip-glow" aria-hidden="true">
+    <span class="bip-blob bip-blob-1"></span>
+    <span class="bip-blob bip-blob-2"></span>
+  </div>
+
+  <svg class="bip-art" viewBox="0 0 220 150" role="img" aria-label="Build in progress">
+    <!-- interlocking cogs -->
+    <g class="bip-gear bip-gear-a">
+      <circle cx="86" cy="56" r="26" />
+      <circle class="bip-hub" cx="86" cy="56" r="8" />
+    </g>
+    <g class="bip-gear bip-gear-b">
+      <circle cx="134" cy="78" r="18" />
+      <circle class="bip-hub" cx="134" cy="78" r="6" />
+    </g>
+    <!-- progress track -->
+    <rect class="bip-track" x="40" y="124" width="140" height="8" rx="4" />
+    <rect class="bip-fill" x="40" y="124" width="140" height="8" rx="4" />
+  </svg>
+
+  <p class="bip-title">{title}</p>
+  <p class="bip-msg">{message}</p>
+</div>
+
+<style>
+  .bip {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.35rem;
+    padding: 3.5rem 2rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    isolation: isolate;
+  }
+  .bip-compact {
+    padding: 2.25rem 1.5rem;
+  }
+
+  .bip-glow {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.5;
+  }
+  .bip-blob {
+    position: absolute;
+    width: 55%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    filter: blur(40px);
+  }
+  .bip-blob-1 {
+    background: var(--color-accent);
+    top: -25%;
+    left: -10%;
+    opacity: 0.55;
+  }
+  .bip-blob-2 {
+    background: #6d63f1;
+    bottom: -30%;
+    right: -10%;
+    opacity: 0.45;
+  }
+
+  .bip-art {
+    width: 150px;
+    height: auto;
+    margin-bottom: 0.5rem;
+  }
+  .bip-gear circle {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 4;
+    stroke-dasharray: 9 7;
+    stroke-linecap: round;
+  }
+  .bip-gear .bip-hub {
+    stroke-dasharray: none;
+    stroke-width: 3;
+    stroke: var(--color-muted);
+  }
+  .bip-gear-b circle {
+    stroke: #6d63f1;
+  }
+  /* Spin each cog about its own centre (view-box units). */
+  .bip-gear {
+    transform-box: view-box;
+  }
+  .bip-gear-a {
+    transform-origin: 86px 56px;
+  }
+  .bip-gear-b {
+    transform-origin: 134px 78px;
+  }
+  .bip-track {
+    fill: var(--color-border);
+  }
+  .bip-fill {
+    fill: var(--color-accent);
+    transform-box: fill-box;
+    transform-origin: left center;
+  }
+
+  .bip-title {
+    font-weight: 650;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+  .bip-msg {
+    max-width: 36ch;
+    color: var(--color-muted);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .bip-gear-a {
+      animation: bipSpin 6s linear infinite;
+    }
+    .bip-gear-b {
+      animation: bipSpin 6s linear infinite reverse;
+    }
+    .bip-fill {
+      animation: bipFill 2.8s var(--ease) infinite;
+    }
+    @keyframes bipSpin {
+      to {
+        rotate: 360deg;
+      }
+    }
+    @keyframes bipFill {
+      0% {
+        transform: scaleX(0.05);
+        opacity: 0.9;
+      }
+      70% {
+        transform: scaleX(0.85);
+        opacity: 1;
+      }
+      100% {
+        transform: scaleX(0.05);
+        opacity: 0.9;
+      }
+    }
+  }
+</style>

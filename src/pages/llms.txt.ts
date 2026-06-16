@@ -27,7 +27,11 @@ export async function GET(_context: APIContext) {
     ),
     "",
     "## Projects",
-    ...projects.map((p) => `- [${p.data.title}](${SITE.url}/projects/${p.id}): ${p.data.summary}`),
+    ...(projects.length
+      ? projects.map(
+          (p) => `- [${p.data.title}](${SITE.url}/projects/${p.id}): ${p.data.summary}`,
+        )
+      : ["Coming soon."]),
     "",
   ];
 

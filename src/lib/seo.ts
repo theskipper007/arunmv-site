@@ -8,8 +8,7 @@ export const SITE = {
   author: "Arun MV",
   email: "arunmv.eh@gmail.com",
   github: "https://github.com/theskipper007",
-  // Placeholder — swap for your real LinkedIn URL.
-  linkedin: "https://www.linkedin.com/in/arunmv",
+  linkedin: "https://www.linkedin.com/in/mv-arun/",
   locale: "en",
 } as const;
 

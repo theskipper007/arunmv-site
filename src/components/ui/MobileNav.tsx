@@ -21,7 +21,7 @@ const LinkedinIcon = ({ size = 20 }: { size?: number }) => (
 
 const SOCIAL = [
   { label: "GitHub", href: "https://github.com/theskipper007", Icon: GithubIcon },
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/arunmv", Icon: LinkedinIcon },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/mv-arun/", Icon: LinkedinIcon },
   { label: "Email", href: "mailto:arunmv.eh@gmail.com", Icon: Mail },
 ];
 

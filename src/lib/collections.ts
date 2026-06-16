@@ -21,6 +21,23 @@ export const CATEGORY_ORDER: Category[] = [
   "random",
 ];
 
+/**
+ * Per-topic colour palette (spec §7 extension). Each category gets a distinct
+ * three-stop gradient used by animated cover art, plus a single `tint` used for
+ * category pills and accents. Keeps topics visually distinguishable at a glance.
+ */
+export const CATEGORY_THEME: Record<
+  Category,
+  { c1: string; c2: string; c3: string; tint: string }
+> = {
+  "ai-engineering": { c1: "#6366F1", c2: "#22D3EE", c3: "#8B5CF6", tint: "#6D63F1" },
+  "tech-opinions": { c1: "#C25A3C", c2: "#E0A458", c3: "#D97706", tint: "#C25A3C" },
+  sports: { c1: "#10B981", c2: "#84CC16", c3: "#0EA5E9", tint: "#0E9E6E" },
+  random: { c1: "#EC4899", c2: "#F472B6", c3: "#A855F7", tint: "#D6438C" },
+};
+
+export const categoryTheme = (c: Category) => CATEGORY_THEME[c];
+
 /** Drafts are excluded from production builds (spec §10). */
 const isVisible = (p: Post) => import.meta.env.DEV || !p.data.draft;
 

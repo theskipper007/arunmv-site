@@ -1,9 +1,11 @@
 ---
+import { Image } from "astro:assets";
 import { Mail } from "@lucide/astro";
 import GithubIcon from "../components/ui/icons/GithubIcon.astro";
 import LinkedinIcon from "../components/ui/icons/LinkedinIcon.astro";
 import PageLayout from "../layouts/PageLayout.astro";
 import { SITE } from "../lib/seo";
+import portrait from "../assets/arun.png";
 
 const links = [
   { label: "GitHub", href: SITE.github, Icon: GithubIcon },
@@ -14,45 +16,58 @@ const links = [
 
 <PageLayout
   title="About"
-  description="Backend/platform engineer turned applied AI — practical, reliable, cost-aware systems."
+  description="Arun MV — AI engineer and product builder turning messy ideas into products people actually want to use. Driven by curiosity and a habit of learning by exploring."
   prose
 >
-  <h1 class="font-serif text-4xl font-semibold tracking-tight text-ink">About</h1>
+  <div class="flex flex-col-reverse gap-6 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="font-serif text-4xl font-semibold tracking-tight text-ink">
+      I build AI products and thoughtful software.
+    </h1>
+    <Image
+      src={portrait}
+      alt="Arun MV"
+      width={320}
+      height={320}
+      class="h-28 w-28 shrink-0 rounded-[var(--radius-lg)] border border-border object-cover shadow-sm sm:h-40 sm:w-40"
+    />
+  </div>
 
   <div class="prose mt-8">
+    <p>Hey, I'm Arun.</p>
     <p>
-      I'm Arun — a backend and platform engineer who moved into applied AI. The throughline of
-      my work is a simple stance: <strong>practical, reliable, cost-aware AI.</strong>
+      I'm an AI engineer and product builder who enjoys turning messy ideas into products people
+      actually want to use.
+    </p>
+    <p>
+      Over the last few years, I've worked across multiple languages, React, modern web stacks,
+      and AI systems — building software that sits somewhere between engineering, product
+      thinking, and experimentation. I enjoy the part where technology stops being a demo and
+      starts becoming useful.
+    </p>
+    <p>
+      Most of what I know, I learned by exploring — pulling things apart, building past the edge
+      of what I understood, and following my curiosity wherever it pointed. That curiosity, and
+      the confidence that I can figure things out, are what fuel me. It's how a question turns
+      into a prototype, and a prototype turns into something real.
     </p>
 
-    <h2>The journey</h2>
-    <p>
-      I started on the backend, modernizing legacy systems and keeping live platforms healthy —
-      the kind of work where reliability and cost are not afterthoughts. Migrating a survey
-      platform from Node 12 (Hapi) to Node 18 (Express) cut cold-starts by roughly a third and
-      taught me how to de-risk a framework swap on something people depend on every day.
-    </p>
-    <p>
-      From there I leaned into LLM features in production: graph-grounded retrieval, review
-      intelligence pipelines, and semantic search at scale. Along the way I doubled a reputation
-      module's revenue and trimmed $5,000+/yr of cloud spend by tuning prompts and model
-      selection for cost and accuracy.
-    </p>
+    <p>This space is where I write about things I'm learning and building:</p>
+    <ul>
+      <li>AI products and applied intelligence</li>
+      <li>Software engineering and developer tools</li>
+      <li>Product design and systems thinking</li>
+      <li>Experiments, failures, and lessons from shipping</li>
+    </ul>
 
-    <h2>What I'm into now</h2>
     <p>
-      Knowledge graphs for LLMs — modeling entities and relationships in Neo4j, episodic
-      time-aware memory with Graphiti, and hybrid semantic + structural retrieval orchestrated
-      with LangGraph. I care about where graph traversal genuinely beats embeddings, and how to
-      keep all of it observable and cost-aware.
+      Outside work, I'm equally interested in the human side of things — football, long-term
+      thinking, habits, stories, and the ideas that shape how we build and live.
     </p>
-
-    <h2>How I build</h2>
     <p>
-      Reliability first: retries, graceful degradation, and observability before cleverness.
-      I'd rather ship something legible and dependable than something flashy and brittle. The
-      same philosophy shapes this site — quiet, fast, and built to last.
+      I don't write because I have all the answers. I write to think clearly, document what I
+      discover, and leave useful trails for people building similar things.
     </p>
+    <p>If something here resonates, stick around.</p>
   </div>
 
   <div class="mt-10 flex gap-4">

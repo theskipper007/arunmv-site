@@ -2,21 +2,24 @@
 import { ArrowRight } from "@lucide/astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PostCard from "../components/content/PostCard.astro";
-import ProjectCard from "../components/content/ProjectCard.astro";
-import { getPublishedPosts, getProjects } from "../lib/collections";
+import BuildInProgress from "../components/content/BuildInProgress.astro";
+import { getPublishedPosts } from "../lib/collections";
 import { SITE } from "../lib/seo";
 
 const posts = (await getPublishedPosts()).slice(0, 3);
-const projects = (await getProjects()).filter((p) => p.data.featured).slice(0, 3);
-const fallbackProjects = projects.length ? projects : (await getProjects()).slice(0, 3);
 ---
 
 <BaseLayout>
   <section class="mx-auto px-6 pb-12 pt-20 sm:pt-28" style="max-width: var(--content-max);">
-    <p class="font-mono text-sm text-faint">Hi, I'm Arun 👋</p>
+    <p
+      class="font-mono font-medium text-muted"
+      style="font-size: clamp(1.25rem, 3vw, 1.75rem);"
+    >
+      Hi, I'm Arun <span class="inline-block">👋</span>
+    </p>
     <h1
       class="mt-4 max-w-3xl font-sans font-bold leading-[1.05] tracking-tight text-ink"
-      style="font-size: clamp(2.5rem, 6vw, 3.75rem);"
+      style="font-size: clamp(2.75rem, 6.5vw, 4.25rem);"
     >
       {SITE.tagline}
     </h1>
@@ -45,7 +48,10 @@ const fallbackProjects = projects.length ? projects : (await getProjects()).slic
       <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Latest writing</h2>
       <a href="/blog" class="font-mono text-xs text-muted no-underline hover:text-accent">all →</a>
     </div>
-    <div class="mt-2">
+    <div
+      class="mt-4 grid gap-5"
+      style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"
+    >
       {posts.map((post) => <PostCard post={post} />)}
       {posts.length === 0 && <p class="py-8 text-faint">No posts yet.</p>}
     </div>
@@ -58,11 +64,12 @@ const fallbackProjects = projects.length ? projects : (await getProjects()).slic
         all →
       </a>
     </div>
-    <div
-      class="mt-4 grid gap-5"
-      style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"
-    >
-      {fallbackProjects.map((project) => <ProjectCard project={project} />)}
+    <div class="reveal mt-4">
+      <BuildInProgress
+        title="Coming soon"
+        message="Project case studies are being written up. In the meantime, the writing is the best window into how I work."
+        compact
+      />
     </div>
   </section>
 </BaseLayout>

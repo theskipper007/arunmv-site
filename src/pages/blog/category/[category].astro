@@ -38,7 +38,10 @@ const label = categoryLabel(category);
       <CategoryNav active={category} />
     </div>
 
-    <div class="mt-2">
+    <div
+      class="mt-6 grid gap-5"
+      style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"
+    >
       {posts.map((post) => <PostCard post={post} />)}
       {posts.length === 0 && <p class="py-16 text-faint">Nothing here yet.</p>}
     </div>

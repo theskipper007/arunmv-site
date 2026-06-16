@@ -200,3 +200,96 @@ html[data-theme="dark"] .astro-code span {
   }
 }
 
+/* Category pills are tinted per topic via the inline --pill custom property. */
+.category-pill {
+  color: var(--pill);
+  border-color: color-mix(in oklab, var(--pill) 35%, transparent);
+  background: color-mix(in oklab, var(--pill) 8%, transparent);
+}
+.category-pill:hover {
+  color: var(--pill);
+  border-color: var(--pill);
+  background: color-mix(in oklab, var(--pill) 16%, transparent);
+}
+
+/* ----------------------------------------------------------------------------
+ * Ambient background — a soft, theme-aware accent glow behind the page so the
+ * paper isn't flat. Fixed, paint-only, and pointer-transparent.
+ * ------------------------------------------------------------------------- */
+body {
+  position: relative;
+  background-image:
+    radial-gradient(60rem 60rem at 12% -8%, color-mix(in oklab, var(--color-accent) 12%, transparent), transparent 60%),
+    radial-gradient(50rem 50rem at 100% 0%, color-mix(in oklab, #6d63f1 10%, transparent), transparent 55%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+:root[data-theme="dark"] body {
+  background-image:
+    radial-gradient(60rem 60rem at 12% -8%, color-mix(in oklab, var(--color-accent) 16%, transparent), transparent 60%),
+    radial-gradient(50rem 50rem at 100% 0%, color-mix(in oklab, #6d63f1 14%, transparent), transparent 55%);
+}
+
+/* ----------------------------------------------------------------------------
+ * Cover art — every post gets a cover: a playable video, an image, or an
+ * animated per-topic gradient fallback. Palette comes from --c1/--c2/--c3
+ * (set inline per category by CoverArt.astro).
+ * ------------------------------------------------------------------------- */
+.cover-art {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  isolation: isolate;
+}
+.cover-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cover-motion {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg,
+      color-mix(in oklab, var(--c1) 22%, var(--color-surface)),
+      color-mix(in oklab, var(--c3) 18%, var(--color-surface)));
+}
+.cover-blob {
+  position: absolute;
+  width: 60%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(26px);
+  opacity: 0.85;
+  will-change: transform;
+}
+.cover-blob-1 { background: var(--c1); top: -12%; left: -6%; }
+.cover-blob-2 { background: var(--c2); top: 8%;  right: -10%; opacity: 0.7; }
+.cover-blob-3 { background: var(--c3); bottom: -18%; left: 28%; opacity: 0.75; }
+.cover-label {
+  position: absolute;
+  inset: auto auto 0.75rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.92);
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.35);
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cover-blob-1 { animation: coverFloat 19s var(--ease) infinite alternate; }
+  .cover-blob-2 { animation: coverFloat 23s var(--ease) infinite alternate-reverse; }
+  .cover-blob-3 { animation: coverFloat 27s var(--ease) infinite alternate; }
+  @keyframes coverFloat {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(8%, -6%) scale(1.12); }
+    100% { transform: translate(-6%, 7%) scale(1.05); }
+  }
+}
+

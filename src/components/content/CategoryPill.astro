@@ -1,5 +1,5 @@
 ---
-import { categoryLabel, type Category } from "../../lib/collections";
+import { categoryLabel, categoryTheme, type Category } from "../../lib/collections";
 
 interface Props {
   category: Category;
@@ -7,12 +7,15 @@ interface Props {
 }
 const { category, size = "md" } = Astro.props;
 const cls = size === "sm" ? "text-[0.7rem] px-2 py-0.5" : "text-xs px-2.5 py-1";
+const tint = categoryTheme(category).tint;
+const style = `--pill:${tint};`;
 ---
 
 <a
   href={`/blog/category/${category}`}
+  style={style}
   class:list={[
-    "inline-block rounded-[var(--radius-pill)] border border-border font-mono uppercase tracking-wide text-muted no-underline transition-colors hover:border-accent hover:text-accent",
+    "category-pill inline-block rounded-[var(--radius-pill)] border font-mono uppercase tracking-wide no-underline transition-colors",
     cls,
   ]}
 >

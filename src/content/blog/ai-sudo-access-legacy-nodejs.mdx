@@ -1,0 +1,105 @@
+---
+title: "I gave AI sudo access to my legacy Node.js app while I was at lunch. It fixed 12 bugs."
+description: "A self-healing feedback loop: tail the logs, feed errors to Claude Code, let it fix, build, and restart — unattended. Here's what it actually fixed."
+pubDate: 2026-06-09
+category: ai-engineering
+audience: technical
+tags: ["claude-code", "automation", "nodejs", "experiments"]
+heroImage: ../../assets/blog/ai-sudo-access.png
+featured: false
+draft: false
+---
+
+import sudoErrorLogs from "../../assets/blog/sudo-error-logs.jpeg";
+import sudoAutoFixer from "../../assets/blog/sudo-auto-fixer.jpeg";
+import sudoPm2Restart from "../../assets/blog/sudo-pm2-restart.jpeg";
+
+> **TL;DR.** I wired a feedback loop around an aging Node.js backend: tail the logs, and when an
+> error shows up, hand the stack trace to Claude Code with permission to fix, build, and restart —
+> no approval prompts. Over a 45-minute lunch it cleared 12 bugs.
+
+## The setup: a simple feedback loop
+
+I had an aging Node.js backend and a stack of small, annoying bugs. Instead of babysitting the
+fix-test-restart cycle by hand, I set up a loop: watch the log file for errors, capture the stack
+trace when something blows up, and send the diagnostic info to Claude Code with instructions to fix
+it, run the build, and restart the service.
+
+## How the "auto-fixer" worked
+
+The whole thing is three moving parts:
+
+1. **The monitor** — `spawn` running `tail -f` on `debug.log`.
+2. **The trigger** — capture the stack trace whenever a `TypeError` or `500 Internal Server Error` shows up.
+3. **The brain** — feed the trace to the AI with instructions to fix, build, and restart, without asking for approval.
+
+<Figure
+  src={sudoErrorLogs}
+  alt="A terminal full of INFO log lines ending in a TypeError: Cannot read properties of undefined (reading 'user_id') with a stack trace, and the process exiting with code 1."
+  caption="The debug.log the monitor was tailing — the TypeError that kicked off the loop."
+/>
+
+## The conceptual wrapper script
+
+```javascript
+const { spawn } = require('child_process');
+const logStream = spawn('tail', ['-f', 'debug.log']);
+
+logStream.stdout.on('data', (data) => {
+  const logOutput = data.toString();
+  if (logOutput.includes('Error') || logOutput.includes('500')) {
+    console.log("Bug detected. Calling Claude Code...");
+
+    const fixer = spawn('claude', [
+      'code',
+      `The following error occurred: ${logOutput}. Fix it, run 'npm run build', and restart PM2.`
+    ]);
+
+    fixer.stdout.on('data', (d) => console.log(`Claude: ${d}`));
+    fixer.stderr.on('data', (d) => console.error(`Claude Error: ${d}`));
+    fixer.on('close', (code) => console.log(`Claude Code exited with code ${code}`));
+  }
+});
+
+logStream.stderr.on('data', (data) => console.error(`Log stream error: ${data}`));
+```
+
+<Figure
+  src={sudoAutoFixer}
+  alt="Terminal showing the auto-dev.js script detecting an error, Claude reading authController.js, applying a fix with optional chaining, running npm test, and two tests passing."
+  caption="Error detected → Claude reads the file, applies the fix, runs the tests, and they pass."
+/>
+
+## What it actually fixed
+
+In a 45-minute window, the loop cleared a pile of issues that would normally have eaten an
+afternoon:
+
+- **7 ReferenceErrors** — leftovers from an incomplete refactor.
+- **3 dependency clashes** — including a missing peer dependency it identified and a version mismatch it verified.
+- **2 async/await issues** — unhandled promise rejections, wrapped with proper error handling.
+
+<Figure
+  src={sudoPm2Restart}
+  alt="Terminal showing pm2 restart api-server, a PM2 process table with status 'online', and 'App [api-server] restarted successfully. Waiting for next error...'"
+  caption="Fix applied, tests green, PM2 restarted — then back to waiting for the next error."
+/>
+
+## The "wait, what?" moment
+
+At one point the server hit a port conflict. Without being told to, the AI ran `lsof -i :3000` to
+find the blocking process, killed it with `kill -9`, and restarted the server. None of that was in
+my instructions — it reasoned its way there.
+
+## The big question: is it safe?
+
+Handing an AI admin privileges in anything resembling a production environment is genuinely risky,
+and I won't pretend otherwise. I ran this in a local sandbox precisely because of that. But the
+exercise made one thing clear: there's real value in automating the repetitive parts of the
+development cycle — the monitoring, the fixing, the restarting.
+
+## The takeaway
+
+You don't have to be the bottleneck in the fix-test-restart loop. Give the AI the context it needs
+from your logs and let it handle routine maintenance. I spent my lunch break poking at the
+automation; the system spent it quietly getting code ready to ship.

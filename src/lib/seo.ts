@@ -2,7 +2,7 @@
 export const SITE = {
   url: "https://arun-mv.com",
   name: "Arun MV",
-  tagline: "I build practical AI systems.",
+  tagline: "I develop agentic AI solutions.",
   description:
     "Practical, reliable, cost-aware AI engineering — writing and selected work by Arun MV.",
   author: "Arun MV",

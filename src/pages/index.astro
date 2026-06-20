@@ -22,11 +22,20 @@ const recent = posts.filter((p) => p.id !== featured?.id).slice(0, 4);
       class="reveal mx-auto flex flex-col justify-center px-6 pt-16 pb-12 sm:pt-24 sm:pb-16"
       style="max-width: var(--content-max); min-height: 70vh;"
     >
+      <p
+        class="mb-4 flex items-center gap-2 font-sans font-semibold text-ink"
+        style="font-size: clamp(1.5rem, 4vw, 2.5rem); line-height: 1.1;"
+        aria-label="Hi, I'm Arun"
+      >
+        <span data-greet>Hi, I'm Arun</span>
+        <span class="wave" aria-hidden="true">👋</span>
+      </p>
       <h1
         class="font-sans font-bold tracking-tight text-ink"
-        style="font-size: clamp(3rem, 10vw, 7rem); line-height: 0.95;"
+        style="font-size: clamp(2rem, 5.5vw, 3.75rem); line-height: 1.05;"
       >
-        Architecting<br /><span class="text-accent">Intelligence.</span>
+        I build <span class="text-accent">intelligence</span><br />and solve
+        <span class="text-accent">real-world problems.</span>
       </h1>
       <p class="mt-7 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl">
         Senior AI Engineer bridging the chasm between theoretical research and production
@@ -98,7 +107,80 @@ const recent = posts.filter((p) => p.id !== featured?.id).slice(0, 4);
   <AboutPreview />
 </BaseLayout>
 
+<script>
+  // Cycle the greeting through a few languages once on load, then settle on
+  // English and stay there. No-JS / reduced-motion users just see English (the
+  // server-rendered default), so nothing is lost.
+  const el = document.querySelector<HTMLElement>("[data-greet]");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (el && !reduce) {
+    const greetings = [
+      "Hi, I'm Arun", // English
+      "வணக்கம், நான் அருண்", // Tamil
+      "नमस्ते, मैं अरुण हूँ", // Hindi
+      "مرحبًا، أنا أرون", // Arabic
+      "ආයුබෝවන්, මම අරුන්", // Sinhalese
+      "你好，我是 Arun", // Chinese
+      "నమస్కారం, నేను అరుణ్", // Telugu
+      "ನಮಸ್ಕಾರ, ನಾನು ಅರುಣ್", // Kannada
+      "Bonjour, je suis Arun", // French
+      "안녕하세요, 저는 Arun입니다", // Korean
+      "Hi, I'm Arun", // English — final, static
+    ];
+
+    let i = 0;
+    el.style.transition = "opacity 180ms var(--ease, ease)";
+
+    const tick = () => {
+      el.style.opacity = "0";
+      window.setTimeout(() => {
+        el.textContent = greetings[i];
+        el.style.opacity = "1";
+        i += 1;
+        if (i < greetings.length) window.setTimeout(tick, 700);
+      }, 180);
+    };
+
+    // Start from a blank slate so the first language swap reads as intentional.
+    el.style.opacity = "0";
+    window.setTimeout(tick, 350);
+  }
+</script>
+
 <style>
+  /* Waving-hand emoji beside the greeting — pivots from the wrist on a gentle
+   * loop. Honors prefers-reduced-motion (no animation, hand stays still). */
+  .wave {
+    display: inline-block;
+    transform-origin: 70% 70%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .wave {
+      animation: wave 2.4s var(--ease, ease) infinite;
+    }
+    @keyframes wave {
+      0%,
+      60%,
+      100% {
+        transform: rotate(0deg);
+      }
+      10%,
+      30% {
+        transform: rotate(14deg);
+      }
+      20% {
+        transform: rotate(-8deg);
+      }
+      40% {
+        transform: rotate(-4deg);
+      }
+      50% {
+        transform: rotate(10deg);
+      }
+    }
+  }
+
   /* Subtle dot-grid texture behind the hero — paint-only, fades toward the
    * lower edge so it never competes with the headline. Theme-aware via --color-ink. */
   .hero-band {

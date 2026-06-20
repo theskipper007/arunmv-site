@@ -1,0 +1,46 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="Every real query carries a scope filter that's a security boundary. In Postgres it's one statement the planner optimizes as a unit; a dedicated store splits it across two systems that must stay in sync."
+>
+  <svg viewBox="0 0 760 226" role="img" aria-label="Two architectures for filtered vector search. With pgvector, similarity search and the scope WHERE clause are one SQL statement. With a dedicated store, the vector search and the scope metadata live in separate systems that must be kept in sync.">
+    <defs>
+      <marker id="fqp-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--color-faint)"></path>
+      </marker>
+    </defs>
+
+    <!-- Path A: pgvector -->
+    <text x="20" y="22" font-family="var(--font-mono)" font-size="11" font-weight="600" fill="#2E8B57">pgvector — one statement</text>
+    <rect x="20" y="34" width="100" height="52" rx="10" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="70" y="64" text-anchor="middle" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">Query</text>
+    <rect x="200" y="30" width="320" height="60" rx="10" fill="color-mix(in oklab, #2E8B57 8%, var(--color-surface))" stroke="#2E8B57"></rect>
+    <text x="360" y="54" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Postgres — ANN + WHERE scope</text>
+    <text x="360" y="72" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">planned as a unit · same backups · same access control</text>
+    <rect x="600" y="34" width="140" height="52" rx="10" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="670" y="58" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Scoped results</text>
+    <text x="670" y="74" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">correct by construction</text>
+    <line x1="120" y1="60" x2="198" y2="60" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#fqp-arrow)"></line>
+    <line x1="520" y1="60" x2="598" y2="60" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#fqp-arrow)"></line>
+
+    <!-- divider -->
+    <line x1="20" y1="116" x2="740" y2="116" stroke="var(--color-border)" stroke-width="1" stroke-dasharray="4 4"></line>
+
+    <!-- Path B: dedicated store -->
+    <text x="20" y="142" font-family="var(--font-mono)" font-size="11" font-weight="600" fill="var(--color-accent)">dedicated store — two systems to sync</text>
+    <rect x="20" y="154" width="100" height="52" rx="10" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="70" y="184" text-anchor="middle" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">Query</text>
+    <rect x="200" y="150" width="200" height="60" rx="10" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="300" y="174" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Vector store — ANN</text>
+    <text x="300" y="192" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">filtered-ANN path</text>
+    <rect x="440" y="150" width="200" height="60" rx="10" fill="var(--color-paper)" stroke="var(--color-accent)" stroke-dasharray="5 4"></rect>
+    <text x="540" y="174" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Copied scope metadata</text>
+    <text x="540" y="192" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-accent)">can drift · must re-sync</text>
+    <line x1="120" y1="180" x2="198" y2="180" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#fqp-arrow)"></line>
+    <line x1="400" y1="180" x2="438" y2="180" stroke="var(--color-faint)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#fqp-arrow)"></line>
+    <text x="690" y="184" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-muted)">drift = a</text>
+    <text x="690" y="197" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-muted)">security bug</text>
+  </svg>
+</Diagram>

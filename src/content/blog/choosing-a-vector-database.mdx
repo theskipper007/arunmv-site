@@ -1,0 +1,68 @@
+---
+title: "Choosing a Vector Database: Benchmarks from My Own Workloads"
+description: "Every vector DB benchmark was run on someone else's data. Benchmark your own vector count, dimensions, and — above all — your real filtering pattern."
+pubDate: 2026-04-24
+category: ai-engineering
+audience: technical
+tags: ["vector-database", "pgvector", "rag", "retrieval", "benchmarks"]
+heroImage: ../../assets/blog/choosing-vector-database.svg
+featured: false
+draft: false
+---
+
+import FilteredQueryPath from "../../components/diagrams/FilteredQueryPath.astro";
+
+<Tldr>
+
+The right vector database is a function of your **workload**, not the leaderboard. Benchmark on your own vector count, dimensions, and — above all — your real **filtering pattern**, because that's where the systems actually separate. Weight operational cost and filtered-query behavior at least as heavily as raw latency.
+
+</Tldr>
+
+Every vector database benchmark you'll read was run on someone else's data. Their vector count, their dimensions, their query pattern, their definition of "fast." None of it tells you how the thing behaves on *your* workload, and the gap between the vendor's benchmark and your production traffic is exactly where the unpleasant surprises live.
+
+The decision I was weighing was whether to pull vectors out of the database they already lived in. We'd started with pgvector — embeddings stored in Postgres next to everything else — and the received wisdom said that's a prototype choice you graduate from, that "real" scale means a dedicated vector store. So before committing to a migration I forced the question: what, specifically, would a dedicated store buy us, measured on our data and not a leaderboard? The more I looked at our actual query pattern, the less obvious the upgrade became.
+
+So I stopped reading other people's numbers and benchmarked against my own. The candidates were the usual set — pgvector, Qdrant, Milvus, Weaviate, Pinecone — and the point was never "which is best" in the abstract. It was "which is best for this shape of data and this access pattern," which is the only question that has an answer.
+
+## The workload shape
+
+This is the part that determines everything, and it's the part generic benchmarks can't capture. Our corpus is code, tickets, and docs chunked and embedded with a code-specialized model at 1024 dimensions, cosine distance, served behind an HNSW index. But the number that actually shapes the decision isn't the vector count — it's that **every real query carries a metadata filter**. We never do a pure nearest-neighbor search. We do "nearest neighbor *among the repositories this agent is allowed to see*," because the system is multi-tenant and scope is non-negotiable.
+
+That last factor — <u>filtering</u> — is the one people underweight. A pure nearest-neighbor search is one problem; nearest-neighbor *with* a metadata filter ("only documents this user can see," "only from the last 30 days") is a meaningfully different and harder one, and the systems diverge sharply on how well they handle it. If your real queries always carry filters, <mark>a benchmark that measures unfiltered search is measuring a workload you don't have</mark>. Ours *always* carry a filter, and it's a security boundary, not a nicety — which raised the bar from "filtering should be fast" to "filtering must be correct and enforced in the same query as the search."
+
+<FilteredQueryPath />
+
+<Callout type="warning" title="A scope filter that can drift is a security bug, not a perf footnote">
+When the filter is a tenant or permission boundary, it has to be *correct*, not just fast. Copying scope metadata into a second system means a sync that can lag — and a stale copy can leak one tenant's vectors to another. Keeping the filter in the same statement as the search makes the boundary enforceable by construction.
+</Callout>
+
+## What I benchmarked and what I found
+
+Under the hood, most of these rest on the same approximate-nearest-neighbor index families, and the choice is a tradeoff, not a free win. HNSW gives strong recall at low latency but pays for it in memory and index build time. IVF is lighter on memory but you trade recall for speed through its tuning. There's no setting that's fast, accurate, cheap, and memory-light at once — you're choosing which one to give up, and your workload decides which sacrifice you can afford. (We ended up running both: HNSW, tuned at m=16 and ef_construction=200 with ef_search dialed per query, for the high-traffic code index, and a lighter IVF index for the bulk document store where build cost mattered more than the last point of recall.)
+
+I measured the things that actually map to user experience and cost — but on *our* corpus and *our* filtered query mix, not borrowed numbers. If you're doing this yourself, run these on your own data; a vendor's figure here is worse than an honest blank:
+
+- **Recall@k** — measured on your corpus, both unfiltered *and* filtered, because the two will differ.
+- **p95 latency under load** — at your real QPS, with the metadata filter applied.
+- **Cost at your scale** — including the operator and infra cost of any *dedicated* system, not just compute.
+- **Filtered-query latency vs unfiltered** — the number that actually decided it for me.
+
+The one that won was pgvector, and the surprise was *why*. It wasn't fastest on a clean unfiltered benchmark. It won because the filter is a plain SQL `WHERE` clause on the same table as the vectors, so "search within this scope" is one query the planner optimizes as a unit — no syncing a copy of the scope metadata into a second system and praying its filtered-ANN path holds up under a selective filter. The dedicated stores were competitive on raw nearest-neighbor and got *more* awkward exactly where my real queries lived.
+
+## The factor that mattered more than raw speed
+
+Here's what the benchmarks don't show you and what I'd weight most heavily next time: operational overhead. Every dedicated vector store is one more system to run, scale, back up, secure, and reason about — and a second source of truth that can drift from the database the rest of the application already trusts.
+
+In my case the deciding factor was that staying in Postgres meant the vectors inherited everything the database already gave us: the same backups, the same access control, the same transactional consistency, and — critically — the same place the tenant-scope tables live, so the security filter and the similarity search are literally the same statement. The fastest system on a clean benchmark can still be the wrong choice if it costs a dedicated operator to keep healthy, or if its filtering falls apart at your real query mix, or if scaling it past your current size means a re-architecture you'll hit in six months. <mark>Raw nearest-neighbor speed is the easiest thing to measure and rarely the thing that decides whether you're happy a year in.</mark> pgvector's good-enough performance meant staying inside a database the team already ran — and that operational simplicity outweighed a faster dedicated store that would have bought speed I didn't need and handed me a second system I'd have to keep alive.
+
+## The takeaway
+
+The right vector database is a function of your workload, not the leaderboard. Benchmark on your own vector count, dimensions, and — above all — your real filtering pattern, because that's where the systems actually separate. And weight operational cost and filtered-query behavior at least as heavily as raw latency, since those are the factors that decide whether the choice still looks good once it's carrying production traffic. The fastest option on someone else's data is just a number about someone else's problem.
+
+<Callout type="reference" title="Tools & references worth a look">
+
+- Malkov & Yashunin, [*Efficient and robust approximate nearest neighbor search using HNSW graphs*](https://arxiv.org/abs/1603.09320) (2016) — the index behind most of these systems.
+- [pgvector](https://github.com/pgvector/pgvector) — vectors and the `WHERE` clause in the same Postgres query.
+- [ANN-Benchmarks](https://ann-benchmarks.com) — useful for method intuition, but run the filtered case on *your* data.
+
+</Callout>

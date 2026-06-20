@@ -1,0 +1,70 @@
+---
+title: "How We Actually Measure RAG Quality"
+description: "RAG quality by vibes doesn't survive a second engineer. Decompose by stage, build the eval set from real failures, calibrate the LLM judge, and gate CI."
+pubDate: 2026-06-04
+category: ai-engineering
+audience: technical
+tags: ["rag", "evaluation", "ragas", "ci", "llm-as-judge"]
+heroImage: ../../assets/blog/measuring-rag-quality.svg
+featured: false
+draft: false
+---
+
+import StageAttribution from "../../components/diagrams/StageAttribution.astro";
+
+<Tldr>
+
+The point of measuring RAG isn't a dashboard with one quality score — it's being able to answer **"which stage broke?"** the moment something regresses. Decompose the metric so a bad answer tells you *where* to look, build the eval set from real failures so it actually hurts, treat your LLM judge as a biased instrument you calibrate, and put the whole thing in CI.
+
+</Tldr>
+
+For a while, "is it good?" was answered by someone on the team typing a few questions, reading the answers, and saying "yeah, looks good." That works right up until two people disagree, or until a change makes the system better on the questions you remember and worse on the ones you don't. <mark>Vibes don't survive contact with a second engineer or a second release.</mark>
+
+The moment it broke for me was a re-ranking change I was certain had helped. The handful of answers I spot-checked came back tighter and better-sourced, so I shipped it. A week later someone asked a question that started in a Jira ticket and ended in code — exactly the cross-source case I hadn't thought to test — and got a confident, fluent answer that was wrong, the kind the old configuration would have gotten right. I had improved the queries I happened to remember and quietly regressed an entire class I didn't. Nobody caught it, because "looks good" has no memory.
+
+The shift was treating RAG quality as something you measure with named metrics on a fixed dataset, the same way you'd never ship code without tests. The metrics I leaned on map to the RAGAS-style breakdown: faithfulness (does the answer stay grounded in the retrieved context), answer relevance (does it actually address the question), context precision (is the retrieved context on-topic rather than padded with noise), and context recall (did retrieval actually pull the chunks that contain the answer). The reason that breakdown matters is that "the answer was bad" is useless for debugging, while "context recall was low" points straight at retrieval and "faithfulness was low on good context" points straight at the generation step.
+
+## Building the eval set
+
+The metrics are only as honest as the dataset under them. Mine is a set of fifty hand-authored ground-truth queries against one real product's corpus. Each one is labeled not with a model-graded "correct answer" string but with the concrete artifacts the answer should rest on — the expected symbols and the expected file paths. And they're bucketed by the shape of question the system actually gets: an exact single-symbol lookup, a conceptual "how does this work" question, a cross-source query that has to jump from a ticket into code, and one that has to reach a design file. Fifty sounds small. The discipline is that every one is a genuine shape of question, labeled by hand against the real repository, so a passing score actually means something.
+
+The part worth stating plainly: I seeded it from real usage, not from my imagination of what users would ask. Questions you invent cluster around the cases you already handle well. The cross-ticket and cross-design buckets exist precisely because those were the queries that had embarrassed the system, not the ones I was proud of. <mark>An eval set that doesn't hurt isn't measuring anything.</mark>
+
+## The metric that caught something real
+
+The decomposition that earned its keep is what I call <u>stage attribution</u>. Instead of one score, every eval query is traced through the pipeline and I record *where* the ground-truth file was lost: did it never make the hybrid retrieval pool (retrieval), did the re-ranker drop it after it got there (rerank), did it survive ranking but never get fetched as content (fetch), or did it get fetched and the model simply never cited it (synth)? On the last run the rollup was 89.3% of queries citing the right source, with 5.3% lost at retrieval, 0% at rerank, 1.3% at fetch, and 4.0% at synthesis. That 5.3% reframed everything: <mark>those weren't hallucinations, they were retrieval misses</mark>. The file holding the answer never entered the candidate pool, so no prompt change downstream could have rescued them.
+
+<StageAttribution />
+
+This is the payoff of decomposing the score. A single end-to-end number would have told me the answers were mediocre. The component metric told me *which stage* to fix, and it wasn't the stage I'd assumed — I'd been about to spend a week on the prompt for a problem that lived in retrieval.
+
+## Where LLM-as-judge misled me
+
+Early on I wanted to score answer faithfulness with an LLM judge, because grading whether a synthesized answer is genuinely grounded felt like the kind of fuzzy thing only a model could do at scale. It scales in a way human rating doesn't, and it's genuinely useful — but it has biases you have to design around, and I learned that the slow way. It misled me in two boringly predictable directions.
+
+Verbosity bias and position bias are the two that bit me. The judge rewarded the answer that restated more of the retrieved context — longer read as more thorough — even when a three-line answer was more correct, and in pairwise comparisons it leaned toward whichever candidate I happened to show first, independent of content. The fixes are mundane: randomize order and average across both arrangements to cancel position effects, and calibrate against a human-labeled slice so you know where the judge and a person actually diverge. That calibration is exactly why the *core* of my eval stayed deterministic — relevance scored by whether a result's symbols and file paths match the labeled ground truth, on a fixed 1.0 / 0.75 / 0.5 / 0.25 scale — and the LLM judge stayed at the edges, where I'd measured its error and knew not to trust it blindly. <mark>An LLM judge is an instrument with a known measurement error, not an oracle</mark>, and an uncalibrated instrument will happily report a clean number that's quietly wrong.
+
+<Callout type="dont" title="Don't trust an LLM judge you haven't calibrated">
+It has predictable biases: **verbosity bias** (longer reads as more thorough, even when a three-line answer is more correct) and **position bias** (it leans toward whichever candidate you show first). Randomize order and average across both arrangements, and calibrate against a human-labeled slice so you know exactly where it diverges from a person.
+</Callout>
+
+## Evals as a CI gate
+
+The change that made all of this matter operationally was wiring the eval set to a hard threshold: NDCG@10 has to clear 0.75 or the change doesn't merge. The first thing it caught was a symbol-extraction tweak that improved the exact-lookup queries and quietly dragged down the cross-design ones — the blended average barely moved, but the per-category and stage-attribution breakdown showed exactly which bucket had regressed, and it never shipped.
+
+Once the eval set runs on every change to retrieval, prompts, the embedding model, or the re-ranker, "we think this is better" becomes "this cleared the bar we already agreed on." That converts quality from an argument into a check. It also changes team behavior — people stop defending changes with intuition and start pointing at the numbers, which is a much shorter conversation.
+
+<Callout type="do" title="Gate every change on the eval set">
+Wire the suite to a hard threshold (here: NDCG@10 ≥ 0.75) so it runs on every change to retrieval, prompts, the embedding model, or the re-ranker. It once caught a symbol-extraction tweak that helped exact-lookups and quietly dragged down cross-design queries — the blended average barely moved, but the per-category breakdown showed the regression, and it never shipped.
+</Callout>
+
+## The takeaway
+
+The point of measuring RAG isn't a dashboard with a single quality score on it. It's being able to answer "which stage broke?" the moment something regresses, and to stop a quiet regression from reaching users at all. Decompose the metric so a bad answer tells you *where* to look, build the eval set from real failures so it actually hurts, treat your LLM judge as a biased instrument you calibrate rather than trust — and then put the whole thing in CI, because a quality bar you don't enforce on every change isn't a bar.
+
+<Callout type="reference" title="Papers & frameworks worth reading next">
+
+- Es et al., [*RAGAS: Automated Evaluation of Retrieval Augmented Generation*](https://arxiv.org/abs/2309.15217) (2023) — the faithfulness / relevance / precision / recall breakdown.
+- Zheng et al., [*Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena*](https://arxiv.org/abs/2306.05685) (2023) — measures the verbosity and position biases this post warns about.
+
+</Callout>

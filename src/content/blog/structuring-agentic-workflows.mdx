@@ -5,14 +5,16 @@ pubDate: 2026-06-01
 category: ai-engineering
 audience: technical
 tags: ["claude-code", "cursor", "agents", "workflow"]
-heroImage: ../../assets/blog/agentic-workflows.jpg
+heroImage: ../../assets/blog/agentic-workflows.svg
 featured: false
 draft: false
 ---
 
-> **TL;DR.** The agents aren't the bottleneck — the missing structure is. Five layers turn chaotic
-> AI coding into something fast and trustworthy: a context file, a plan gate, atomic tasks, git
-> checkpoints, and a verification loop.
+<Tldr>
+
+The agents aren't the bottleneck — the **missing structure** is. Five layers turn chaotic AI coding into something fast and trustworthy: a context file, a plan gate, atomic tasks, git checkpoints, and a verification loop. Structure doesn't slow agents down; it's exactly what makes them fast.
+
+</Tldr>
 
 | Layer | What to do | Why |
 | --- | --- | --- |
@@ -34,7 +36,7 @@ multi-step actions on its own; uses tools like code execution and file writing; 
 other agents or APIs.
 
 Tools like Claude Code and Cursor's Composer live in that second category. The key insight:
-structure doesn't slow agents down — it's exactly what makes them fast and trustworthy.
+<mark>structure doesn't slow agents down — it's exactly what makes them fast and trustworthy.</mark>
 
 ## Layer 1 — Ground the agent: your context file
 
@@ -122,8 +124,8 @@ only mark an item done after you verify its output.
 - [ ] 06 — Update API docs in `/docs/auth.md`
 ```
 
-When tasks stay atomic, the agent has a clear definition of done. Compound objectives create
-multiple decision points — and every decision point is an invitation to hallucinate.
+When tasks stay atomic, the agent has a clear definition of done. <mark>Compound objectives create
+multiple decision points — and every decision point is an invitation to hallucinate.</mark>
 
 ## Layer 4 — The git checkpoint protocol
 
@@ -214,4 +216,10 @@ Take "add email verification to the sign-up flow."
 The result: six distinct, reviewable, independently rollback-able commits — with a git history that
 doubles as documentation.
 
-The agents aren't the bottleneck. The missing structure is.
+<Callout type="dont" title="Avoid the God Task">
+Work spanning 5+ files or multiple outputs almost always drifts — the agent starts solving your
+problem and finishes solving a variation of it. Split it into single-responsibility sessions, one
+verified commit each, before you hand any of it to the agent.
+</Callout>
+
+<mark>The agents aren't the bottleneck. The missing structure is.</mark>

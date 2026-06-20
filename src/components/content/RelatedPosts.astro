@@ -1,6 +1,5 @@
 ---
-import CategoryPill from "./CategoryPill.astro";
-import { formatDate, type Post } from "../../lib/collections";
+import { categoryLabel, categoryTheme, formatDate, type Post } from "../../lib/collections";
 
 interface Props {
   posts: Post[];
@@ -18,7 +17,12 @@ const { posts } = Astro.props;
             href={`/blog/${post.id}`}
             class="group flex h-full flex-col gap-2 rounded-[var(--radius-md)] border border-border p-4 no-underline transition-colors hover:border-accent/40"
           >
-            <CategoryPill category={post.data.category} size="sm" />
+            <span
+              style={`--pill:${categoryTheme(post.data.category).tint};`}
+              class="category-pill inline-block w-fit rounded-[var(--radius-pill)] border px-2 py-0.5 font-mono text-[0.7rem] uppercase tracking-wide"
+            >
+              {categoryLabel(post.data.category)}
+            </span>
             <span class="font-medium text-ink transition-colors group-hover:text-accent">
               {post.data.title}
             </span>

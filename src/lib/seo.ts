@@ -2,7 +2,7 @@
 export const SITE = {
   url: "https://arun-mv.com",
   name: "Arun MV",
-  tagline: "I develop agentic AI solutions.",
+  tagline: "I build AI products that hold up past the demo.",
   description:
     "Practical, reliable, cost-aware AI engineering — writing and selected work by Arun MV.",
   author: "Arun MV",
@@ -19,7 +19,7 @@ export const SOCIAL_LINKS = [
 ];
 
 export const NAV = [
-  { label: "Blog", href: "/blog" },
+  { label: "Writing", href: "/blog" },
   { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
 ];

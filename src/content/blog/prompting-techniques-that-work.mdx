@@ -10,9 +10,11 @@ featured: false
 draft: false
 ---
 
-> **TL;DR.** Prompting is a skill, not a search box. Seven techniques — zero-shot, few-shot,
-> chain-of-thought, self-consistency, tree of thoughts, ReAct, and role prompting — consistently
-> deliver across ChatGPT, Claude, and Gemini. The real unlock is stacking them.
+<Tldr>
+
+Prompting is a **skill, not a search box**. Seven techniques — zero-shot, few-shot, chain-of-thought, self-consistency, tree of thoughts, ReAct, and role prompting — consistently deliver across ChatGPT, Claude, and Gemini. The real unlock is *stacking* them: role → examples → step-by-step → output format.
+
+</Tldr>
 
 Most people interact with AI the way they'd Google something — type a question, hope for the
 best. That approach leaves most of a model's capability untapped.
@@ -22,7 +24,10 @@ output that saves you hours. After digging through the research (including work 
 Princeton, and MIT), these are the seven techniques that reliably move the needle across all the
 major LLMs.
 
-> **Key finding:** clarity, structure, and context are the top predictors of high-quality AI output.
+<Callout type="tip" title="The one finding under all seven">
+Across every technique below, <u>clarity, structure, and context</u> are the top predictors of
+high-quality output. The methods are just different ways of supplying more of all three.
+</Callout>
 
 ## 1. Zero-shot prompting ⭐⭐⭐
 
@@ -212,5 +217,14 @@ The most powerful prompts combine multiple techniques. A killer combo: assign a 
 examples → ask for step-by-step reasoning → specify the output format exactly. Each layer makes the
 output more precise.
 
-You don't need all seven on every prompt. Knowing which tool to reach for, and when, is what
+<mark>You don't need all seven on every prompt.</mark> Knowing which tool to reach for, and when, is what
 separates people who get generic AI output from those who get genuinely useful work.
+
+<Callout type="reference" title="The papers behind the techniques">
+
+- Wei et al., [*Chain-of-Thought Prompting*](https://arxiv.org/abs/2201.11903) (2022) — "let's think step by step," and why it works.
+- Wang et al., [*Self-Consistency Improves Chain of Thought Reasoning*](https://arxiv.org/abs/2203.11171) (2022) — sample many chains, take the majority.
+- Yao et al., [*Tree of Thoughts*](https://arxiv.org/abs/2305.10601) (2023) — branch, evaluate, and prune reasoning paths.
+- Yao et al., [*ReAct: Synergizing Reasoning and Acting*](https://arxiv.org/abs/2210.03629) (2022) — the thought → action → observation loop behind modern agents.
+
+</Callout>

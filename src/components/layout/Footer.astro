@@ -1,5 +1,5 @@
 ---
-import { Mail, Rss } from "@lucide/astro";
+import { Mail } from "@lucide/astro";
 import GithubIcon from "../ui/icons/GithubIcon.astro";
 import LinkedinIcon from "../ui/icons/LinkedinIcon.astro";
 import { SITE, NAV } from "../../lib/seo";
@@ -20,7 +20,10 @@ const socials = [
   >
     <div>
       <p class="font-mono text-sm text-ink">arun mv</p>
-      <p class="mt-1 max-w-xs text-sm text-muted">{SITE.description}</p>
+      <p class="mt-1 max-w-xs text-sm text-muted">
+        Always happy to talk shop —
+        <a href={`mailto:${SITE.email}`} class="text-muted underline hover:text-ink">{SITE.email}</a>.
+      </p>
     </div>
 
     <nav aria-label="Footer" class="flex flex-col gap-3 sm:items-end">
@@ -50,13 +53,6 @@ const socials = [
             );
           })
         }
-        <a
-          href="/rss.xml"
-          aria-label="RSS feed"
-          class="text-muted transition-colors hover:text-ink"
-        >
-          <Rss size={20} stroke-width={1.5} />
-        </a>
       </div>
     </div>
   </div>

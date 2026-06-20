@@ -1,0 +1,78 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="Two halves: an ingest pipeline that lands code, tickets, docs, and designs into pgvector (hot retrieval) and a Neo4j graph (relationships); and a query path that fans out, fuses, re-ranks, expands with graph relationships, and generates with forced citation — behind a fail-closed tenant scope on every retrieval."
+>
+  <svg viewBox="0 0 760 270" role="img" aria-label="System architecture. Ingest: code, tickets, docs, and designs flow through a queue, chunk, and embed step into Postgres with pgvector and a Neo4j knowledge graph, with raw blobs in cold storage. Query: a question runs multi-prong retrieval (dense, lexical, symbol, path), fuses results, re-ranks, expands via natural-language-to-graph, and generates an answer with forced citation. A fail-closed tenant scope wraps every retrieval.">
+    <defs>
+      <marker id="sa-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--color-faint)"></path>
+      </marker>
+    </defs>
+
+    <!-- ===== INGEST ===== -->
+    <text x="20" y="18" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">INGEST</text>
+
+    <rect x="20" y="28" width="116" height="56" rx="9" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="78" y="50" text-anchor="middle" font-family="var(--font-sans)" font-size="11" font-weight="600" fill="var(--color-ink)">Code · Tickets</text>
+    <text x="78" y="66" text-anchor="middle" font-family="var(--font-sans)" font-size="11" font-weight="600" fill="var(--color-ink)">Docs · Designs</text>
+
+    <rect x="164" y="28" width="124" height="56" rx="9" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="226" y="50" text-anchor="middle" font-family="var(--font-sans)" font-size="11.5" font-weight="600" fill="var(--color-ink)">Queue → chunk</text>
+    <text x="226" y="67" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">code-specialized embed</text>
+
+    <!-- stores -->
+    <rect x="316" y="20" width="150" height="32" rx="8" fill="color-mix(in oklab, var(--color-accent) 8%, var(--color-surface))" stroke="var(--color-accent)"></rect>
+    <text x="391" y="40" text-anchor="middle" font-family="var(--font-mono)" font-size="10" font-weight="600" fill="var(--color-ink)">Postgres + pgvector</text>
+    <rect x="316" y="58" width="150" height="32" rx="8" fill="color-mix(in oklab, #3B6EA5 9%, var(--color-surface))" stroke="#3B6EA5"></rect>
+    <text x="391" y="78" text-anchor="middle" font-family="var(--font-mono)" font-size="10" font-weight="600" fill="var(--color-ink)">Neo4j graph</text>
+
+    <line x1="136" y1="56" x2="162" y2="56" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#sa-arrow)"></line>
+    <line x1="288" y1="48" x2="314" y2="40" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#sa-arrow)"></line>
+    <line x1="288" y1="64" x2="314" y2="72" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#sa-arrow)"></line>
+
+    <!-- ===== SCOPE band ===== -->
+    <rect x="500" y="20" width="240" height="70" rx="9" fill="color-mix(in oklab, #2E8B57 7%, var(--color-surface))" stroke="#2E8B57" stroke-dasharray="5 4"></rect>
+    <text x="620" y="48" text-anchor="middle" font-family="var(--font-sans)" font-size="12" font-weight="700" fill="var(--color-ink)">Fail-closed tenant scope</text>
+    <text x="620" y="66" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">wraps every retrieval · audit-logged</text>
+    <text x="620" y="80" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">empty scope → matches nothing</text>
+
+    <!-- ===== QUERY ===== -->
+    <text x="20" y="130" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">QUERY</text>
+
+    <rect x="20" y="140" width="96" height="48" rx="9" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="68" y="168" text-anchor="middle" font-family="var(--font-sans)" font-size="12" font-weight="600" fill="var(--color-ink)">Question</text>
+
+    <rect x="144" y="132" width="150" height="64" rx="9" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="219" y="154" text-anchor="middle" font-family="var(--font-sans)" font-size="11.5" font-weight="600" fill="var(--color-ink)">Multi-prong retrieval</text>
+    <text x="219" y="170" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">dense · lexical</text>
+    <text x="219" y="183" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">symbol · path</text>
+
+    <rect x="322" y="140" width="128" height="48" rx="9" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="386" y="162" text-anchor="middle" font-family="var(--font-sans)" font-size="11.5" font-weight="600" fill="var(--color-ink)">Fuse → re-rank</text>
+    <text x="386" y="178" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">+ NL→graph expand</text>
+
+    <rect x="478" y="132" width="120" height="64" rx="9" fill="color-mix(in oklab, var(--color-accent) 7%, var(--color-surface))" stroke="var(--color-accent)"></rect>
+    <text x="538" y="158" text-anchor="middle" font-family="var(--font-sans)" font-size="11.5" font-weight="600" fill="var(--color-ink)">Generate</text>
+    <text x="538" y="174" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">forced citation</text>
+    <text x="538" y="186" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">+ "couldn't find" list</text>
+
+    <rect x="626" y="140" width="114" height="48" rx="9" fill="color-mix(in oklab, #2E8B57 8%, var(--color-surface))" stroke="#2E8B57"></rect>
+    <text x="683" y="162" text-anchor="middle" font-family="var(--font-sans)" font-size="11.5" font-weight="600" fill="var(--color-ink)">Answer</text>
+    <text x="683" y="178" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">cited file · line</text>
+
+    <line x1="116" y1="164" x2="142" y2="164" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#sa-arrow)"></line>
+    <line x1="294" y1="164" x2="320" y2="164" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#sa-arrow)"></line>
+    <line x1="450" y1="164" x2="476" y2="164" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#sa-arrow)"></line>
+    <line x1="598" y1="164" x2="624" y2="164" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#sa-arrow)"></line>
+
+    <!-- stores feed retrieval -->
+    <path d="M360,90 L360,110 L219,110 L219,130" fill="none" stroke="var(--color-faint)" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#sa-arrow)"></path>
+
+    <!-- served as -->
+    <text x="380" y="228" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">served two ways: MCP endpoint for AI assistants · search surface in a dashboard</text>
+    <text x="380" y="250" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">eval set wired to a CI threshold — every change measured before it ships</text>
+  </svg>
+</Diagram>

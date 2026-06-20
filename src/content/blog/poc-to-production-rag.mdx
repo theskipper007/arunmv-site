@@ -1,0 +1,84 @@
+---
+title: "POC to Production: What Breaks When RAG Meets Real Users"
+description: "A RAG demo proves the happy path exists. Production is everything else — tracing, drift, evals, and learning to say 'I don't have that part.'"
+pubDate: 2026-04-09
+category: ai-engineering
+audience: technical
+tags: ["rag", "production", "observability", "evaluation", "llmops"]
+heroImage: ../../assets/blog/poc-to-production.svg
+featured: true
+draft: false
+---
+
+import RagFailureSurface from "../../components/diagrams/RagFailureSurface.astro";
+
+<Tldr>
+
+A RAG demo answers *"can this work?"* Production answers *"what happens on the query I didn't anticipate?"* — and that's the only question users ever ask. Build the **tracing** that tells you which stage failed and the **eval set** that stops you re-breaking what you fixed. Almost everything else is downstream of being able to see what your system actually did.
+
+</Tldr>
+
+The demo never fails. That's the most dangerous thing about building RAG systems. You run it against the handful of questions you've been testing all week, retrieval lands clean, the model answers, the room nods. Then real traffic arrives and the same system returns a <mark>confident, well-formatted wrong answer</mark> to a question nobody thought to ask.
+
+It broke for me in a direct message. An engineer had asked the assistant where a piece of permission logic lived, and gotten a clean, cited answer naming a function and a file — and the function didn't exist. No crash, no error in any log; just a confident, well-formatted pointer to nothing. They'd already spent ten minutes hunting for it before pinging me to ask whether the tool was "sure." That was the moment "it works in the demo" stopped meaning anything.
+
+The system was built to answer real engineering questions over our own org — where something is implemented, how a flow actually works, what a given ticket touches across code, tickets, and designs — served both to AI coding assistants over an MCP endpoint and as a search box in a dashboard. In the controlled environment of the demo it handled everything I gave it. The first week of real usage it broke because the questions looked nothing like my curated set: engineers asked cross-source things that started in a ticket and ended three files deep, phrased with the half-remembered identifiers they actually type, while the index had already drifted out of date as the codebase merged past the snapshot I'd built it on.
+
+That gap — between a system that works on *your* questions and one that works on *everyone's* — is the actual job. The demo only proves the happy path exists. Production is the management of everything that isn't the happy path.
+
+## Why this wasn't just an engineering annoyance
+
+The people relying on it were engineers, and engineers act on specifics — they take the function name, the file path, the contract you hand them and build on it without re-deriving it. A wrong pointer doesn't just cost the ten minutes spent chasing it; it teaches a careful engineer to distrust every answer that comes after. And in a multi-product org the stakes compound: the first time the assistant confidently surfaces the *wrong product's* code, the whole team quietly stops trusting it.
+
+The thing to understand is that <mark>a wrong RAG answer is worse than no answer</mark>. A search box that returns nothing tells the user to look elsewhere. A RAG system that returns a fluent, cited, completely wrong paragraph tells the user to stop looking — and to act on bad information. <u>The fluency is the liability.</u> So "mostly right in the demo" was never going to be the bar.
+
+## What I actually did
+
+My first instinct was to blame the model. It turned out to be the wrong instinct, and chasing it cost me time.
+
+The fix that mattered started with observability. Until you trace the full retrieve → rank → generate chain on real traffic, you're guessing. So I instrumented each stage: what query came in, which symbols and entities resolved, what got retrieved and at what scores, what survived re-ranking, and what the model did with the context it was handed. The first thing that surfaced was uncomfortable — <mark>most of what I'd been calling "hallucination" was actually retrieval failure</mark>. The model was answering faithfully from context that simply didn't contain the answer. The bug was upstream of the model entirely.
+
+<RagFailureSurface />
+
+The second thing the traces showed was drift. The index had been built once, during the POC, and the underlying code had moved on. New content wasn't indexed; deleted content was still being retrieved. Retrieval quality on a static index degrades quietly the moment the source of truth starts changing, and nobody notices until someone asks about a file that was renamed last Tuesday. I put ingestion on a real refresh cadence — a queue-driven pipeline that re-indexes on change rather than on a one-off build — and added a check that flags when retrieved chunks point at files that no longer exist.
+
+The third change was treating evals as regression tests rather than a one-time scoring exercise. I built a golden set seeded directly from the production failures — the real queries that had embarrassed us, bucketed by shape (exact-symbol lookup, conceptual, cross-ticket, cross-design) — and wired it into CI behind a hard threshold. Any change to chunking, the embedding model, the prompt, or the re-ranker had to clear that bar before it shipped. This is the single highest-leverage thing on the list, because it converts "we think this is better" into "this didn't regress the cases we already know are hard."
+
+<Callout type="do" title="Seed evals from real failures, not imagined ones">
+Build your golden set from the queries that actually embarrassed you in production, bucketed by *shape* (exact-symbol lookup, conceptual, cross-source). Wire it into CI behind a hard threshold so every change to chunking, embeddings, the prompt, or the re-ranker has to clear the bar before it ships.
+</Callout>
+
+Then there was the latency budget. The demo had no users waiting, so nobody cared that a query took a few seconds. In production the synthesis step dominated p95, and a slow answer to an interactive query is functionally a failed one. I put an explicit token budget on the assembled context — a global cap with per-slot limits and content-hash deduplication — which forced honest decisions about how much context was worth its latency and cost rather than stuffing the window because I could.
+
+The last piece was being honest about what the corpus couldn't answer. Real users ask things your index doesn't cover, and the default behavior of an LLM is to oblige anyway. Rather than let it fabricate, the answer is structured to carry an explicit list of what the retrieved context did *not* contain — so when retrieval comes back thin, the system names the parts it couldn't ground instead of inventing them. <mark>Saying "I don't have that part" is a feature, not a failure</mark> — it's the difference between a tool people trust and one they learn to second-guess.
+
+## What worked, and what didn't
+
+<Callout type="output" title="After the changes, measured on the failure-seeded eval set">
+
+- **Right-source citation: ~89%** of queries (up from "confidently wrong, invisibly")
+- **Misses concentrated in retrieval** — a stage I can see and keep improving, not scattered across the pipeline
+- **Interactive p95 latency** pulled back into "feels instant" by the context budget
+- **Abstention rate on thin retrieval** trending *up* — every abstention is a confident-wrong answer that didn't happen
+
+</Callout>
+
+The result of those changes: on the eval set built from those production failures, the system now cites the right source on roughly 89% of queries, and — just as important — the misses are concentrated in *retrieval*, a stage I can see and keep improving, rather than scattered invisibly across the pipeline. The other two numbers I now watch closely are interactive p95 latency, which the context budget pulled back into a range that feels instant rather than sluggish, and the rate at which the system abstains on thin retrieval instead of guessing — a metric I want to *go up*, because every abstention is a confident-wrong answer that didn't happen.
+
+What didn't help was reaching for a bigger generation model. When an answer came back wrong, my reflex was that a stronger model would reason its way out of it — but a larger model handed the same weak context was just as confidently wrong, because the gap was never the model's reasoning, it was the material it had been given. I spent real time on that before the traces made it obvious I was tuning the wrong stage. That's the part senior readers actually want: not the clean victory, but the wrong turn that the instrumentation eventually corrected.
+
+<Callout type="dont" title="Don't reach for a bigger model to fix a weak-context answer">
+If retrieval handed the model the wrong material, a larger model just produces a more fluent version of the same wrong answer. Spend the effort on the stage you can *see* — retrieval — not the one that's easiest to swap.
+</Callout>
+
+## The takeaway
+
+A RAG demo answers the question "can this work?" A RAG production system answers "what happens on the query I didn't anticipate?" — and the second question is the only one users ever ask. If you build nothing else before launch, build the tracing that tells you which stage failed and the eval set that stops you from re-breaking what you already fixed. Almost everything else is downstream of being able to see what your system actually did.
+
+<Callout type="reference" title="Papers & tools worth reading next">
+
+- Lewis et al., [*Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks*](https://arxiv.org/abs/2005.11401) (2020) — the original RAG formulation.
+- Liu et al., [*Lost in the Middle: How Language Models Use Long Contexts*](https://arxiv.org/abs/2307.03172) (2023) — why a tighter context budget often beats stuffing the window.
+- Es et al., [*RAGAS: Automated Evaluation of Retrieval Augmented Generation*](https://arxiv.org/abs/2309.15217) (2023) — a framework for the eval set this post argues for.
+
+</Callout>

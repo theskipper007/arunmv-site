@@ -4,8 +4,9 @@ import { categoryLabel, categoryTheme, type Category } from "../../lib/collectio
 interface Props {
   category: Category;
   size?: "sm" | "md";
+  class?: string;
 }
-const { category, size = "md" } = Astro.props;
+const { category, size = "md", class: className = "" } = Astro.props;
 const cls = size === "sm" ? "text-[0.7rem] px-2 py-0.5" : "text-xs px-2.5 py-1";
 const tint = categoryTheme(category).tint;
 const style = `--pill:${tint};`;
@@ -17,6 +18,7 @@ const style = `--pill:${tint};`;
   class:list={[
     "category-pill inline-block w-fit rounded-[var(--radius-pill)] border font-mono uppercase tracking-wide no-underline transition-colors",
     cls,
+    className,
   ]}
 >
   {categoryLabel(category)}

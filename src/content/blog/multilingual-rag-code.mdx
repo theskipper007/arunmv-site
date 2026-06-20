@@ -1,0 +1,71 @@
+---
+title: "Multilingual RAG, Where the Languages Are Code"
+description: "Code is many languages plus an identifier dialect tokenizers shred. Use code-specialized embeddings, identifier-aware retrieval, and structure-aware chunking."
+pubDate: 2026-05-16
+category: ai-engineering
+audience: technical
+tags: ["rag", "embeddings", "retrieval", "code-search", "tokenization"]
+heroImage: ../../assets/blog/multilingual-rag.svg
+featured: false
+draft: false
+---
+
+import MultiProngRetrieval from "../../components/diagrams/MultiProngRetrieval.astro";
+
+<Tldr>
+
+RAG over code mostly isn't a model-reasoning problem — it's a **representation problem** that surfaces long before generation. Identifiers have to survive tokenization, parsing, and chunking intact, and a single blended quality metric hides the query types that are quietly broken. Use an embedding model built for code, give retrieval a path that understands identifiers, parse on real structure — and **measure per category**.
+
+</Tldr>
+
+English-first RAG hides its own assumptions. Everything in the pipeline — the tokenizer, the chunker, the embedding model, the similarity threshold you picked — was tuned on prose by people who tested on prose, and it all keeps quietly working until the day the thing you're indexing isn't prose at all. My corpus wasn't Arabic or Tamil. It was source code: Python, TypeScript, a long tail of other languages, and right alongside them the human-written tickets and design notes that describe them. A single index, several very different "languages," and a stack that had quietly assumed they were all English.
+
+The first time I saw it break, nothing in the logs was wrong. Someone searched for a function they knew existed — a camelCase identifier — and got back a fluent answer about a loosely related part of the codebase. No error, no low-confidence flag, just a confident answer resting on the wrong chunk. When I searched the same symbol a few different ways, the pattern held: questions phrased in plain English about *what the code did* worked fine, and questions that leaned on the actual *identifiers* — the names engineers really type — came back subtly, invisibly worse. The system hadn't broken. It had been built as if code were just English, and it isn't.
+
+The "languages" I actually had to handle were Python and TypeScript as the big two, a scattering of others, and — crucially — natural-language Jira tickets, Notion docs, and Figma text living in the same index. Not as a research exercise. A real assistant for a real engineering org, where a single question routinely starts in a ticket written in English and has to land on a function named in `snake_case`.
+
+## The part that broke
+
+The specific breakage was that <mark>code identifiers fragmented before retrieval ever ran</mark>. `resolveProductScope` and `product_node_id` aren't words the way "resolve" and "product" are — a prose-tuned tokenizer shreds them into pieces that don't carry the clean semantic signal whole English subwords do. It didn't show up as an error. It showed up as silently worse retrieval — the same architecture that handled "how does scoping work" fine returning loosely related chunks for the exact symbol, and the model dutifully generating a fluent answer on top of weak context.
+
+When I traced it, the root cause was lower in the stack than I expected. <u>Tokenizer fertility</u> — the number of subword tokens a model splits a token into — behaves very differently for identifiers than for prose. `getUserPermissionsForTeam` fragments into a pile of pieces, and those fragments embed into mush. Fragmentation upstream means weaker embeddings downstream, which means worse nearest-neighbor retrieval, which means the model is reasoning over the wrong context before it's even been asked to generate anything. The visible symptom was a bad answer; the actual fault was that the identifier never got represented properly in vector space.
+
+Naming conventions made it worse. The same concept shows up as `dealPipeline` in one file, `deal_pipeline` in another, and "the deal pipeline" in a ticket describing both. To a general-purpose embedding model those three are barely related, so the index was effectively storing several spellings of one concept as if they were unrelated — and a query in any one form missed the chunks written in the others.
+
+## What fixed it
+
+Three changes, roughly in order of impact.
+
+The first was reconsidering the embedding model, because this was the single biggest lever. The general-purpose model I'd started with was the wrong tool — it was trained to be good at prose and treated code as a slightly weird dialect of it. I moved to an embedding model actually specialized for code (1024 dimensions, cosine), one trained so that a natural-language description and the code that implements it land near each other in vector space regardless of which surface form each takes. A model that was only ever strong on English will keep failing on identifiers no matter how clean the rest of your pipeline is, and no amount of downstream tuning recovers what a wrong embedding throws away.
+
+<Callout type="do" title="Embed code with a model built for code">
+A general-purpose embedder treats code as a weird dialect of prose. A code-specialized model is trained so a natural-language description and the implementation land near each other in vector space — regardless of `camelCase`, `snake_case`, or the English ticket describing both. This is the single biggest lever; nothing downstream recovers what the embedding throws away.
+</Callout>
+
+The second was retrieval that understands identifiers instead of fighting them. Dense vector search alone isn't enough when the query *is* a symbol name, so retrieval runs several prongs in parallel and fuses them: the dense semantic search, a lexical pass, a file-path pass, and — the one that mattered most here — a symbol-name prong that does trigram matching over the actual identifiers and reconstructs compound names. It knows that "deal" plus "pipeline" should reach `dealPipeline`, and that a domain term like "permission" should also surface `permissionService` and `permissionGuard`. That prong is what makes an engineer's half-remembered identifier find the real one, across naming conventions, where pure semantic similarity would have shrugged.
+
+<MultiProngRetrieval />
+
+The third was parsing and chunking that respect code structure. Source isn't a flat stream of characters you can cut every N bytes — a boundary drawn mid-function embeds into noise the same way half a word does. A tree-sitter–based pass parses each language into its real units — functions, classes, imports — so chunks fall on structural boundaries and a symbol survives into the index whole, with the context that gives it meaning attached. Measuring chunk size in naive character counts silently produces wildly different real units across languages; structure-aware boundaries fix that.
+
+<Callout type="dont" title="Don't chunk code by character count">
+Cutting every N characters draws boundaries mid-function, and half a function embeds into noise the same way half a word does. Parse with tree-sitter and let chunks fall on real structural units — functions, classes, imports — so a symbol reaches the index whole, with its context attached.
+</Callout>
+
+The before/after is clearest broken out by question type rather than in aggregate, the same way you'd report per-language numbers for human languages: the exact-symbol-lookup queries and the conceptual "how does this work" queries fail in different stages and have to be measured separately. The exact-symbol lookups — the category that had been quietly broken — were the ones that moved most, climbing from "right file rarely in the top results" to landing it the large majority of the time, while the conceptual queries that already worked barely shifted. <mark>A blended score hides exactly the category that's quietly broken.</mark>
+
+## The assumption I started with and was wrong about
+
+I assumed code was "just text," and that a strong general-purpose embedding model would handle it the way it handled everything else. It doesn't — code is several languages plus an identifier dialect that none of them tokenize cleanly, and a model that has merely *seen* code is not the same as one built to represent it. What corrected me was breaking evaluation out by question category and watching a single decent-looking number splinter into a wide spread: great on conceptual questions, poor on the exact-identifier lookups engineers actually run most. The correction reshaped how I evaluated everything afterward: I stopped reporting one retrieval score and started reporting one per question type and per source, because the average was hiding the failures real users were hitting.
+
+## The takeaway
+
+RAG over code mostly isn't a model-reasoning problem — it's a representation problem that surfaces long before generation. Identifiers have to survive tokenization, parsing, and chunking intact before any embedding model has a fair chance, and a single blended quality metric will hide the query types that are quietly broken. Treat code as its own family of languages, not as prose: use an embedding model built for it, give retrieval a path that understands identifiers, parse on real structure — and measure per category, treating the worst one as your real number. That's the one your engineers are living with.
+
+<Callout type="reference" title="Papers & tools worth reading next">
+
+- Husain et al., [*CodeSearchNet Challenge: Evaluating the State of Semantic Code Search*](https://arxiv.org/abs/1909.09436) (2019) — the benchmark behind code-aware retrieval.
+- Feng et al., [*CodeBERT: A Pre-Trained Model for Programming and Natural Languages*](https://arxiv.org/abs/2002.08155) (2020) — bridging NL queries and code.
+- [tree-sitter](https://tree-sitter.github.io/tree-sitter/) — the incremental parser behind structure-aware chunking.
+
+</Callout>

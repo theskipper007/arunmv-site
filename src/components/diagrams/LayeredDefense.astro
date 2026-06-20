@@ -1,0 +1,43 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="Three layers, in order of leverage. Better retrieval removes most fabrication before generation; forced citation constrains what's left; the gaps field converts the remainder into honest non-answers."
+>
+  <svg viewBox="0 0 760 244" role="img" aria-label="A funnel of three defensive layers reducing confident-wrong answers: better retrieval, then forced citation, then a gaps field, leaving only rare catchable misses.">
+    <defs>
+      <marker id="ld-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--color-faint)"></path>
+      </marker>
+    </defs>
+
+    <!-- Input -->
+    <rect x="200" y="10" width="360" height="34" rx="8" fill="color-mix(in oklab, var(--color-accent) 9%, var(--color-paper))" stroke="var(--color-accent)"></rect>
+    <text x="380" y="32" text-anchor="middle" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">Confident-wrong answers</text>
+    <line x1="380" y1="44" x2="380" y2="62" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#ld-arrow)"></line>
+
+    <!-- Layer 1 -->
+    <rect x="150" y="64" width="460" height="40" rx="9" fill="var(--color-surface)" stroke="var(--color-border)"></rect>
+    <rect x="150" y="64" width="4" height="40" rx="2" fill="#2E8B57"></rect>
+    <text x="380" y="82" text-anchor="middle" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">1 · Better retrieval</text>
+    <text x="380" y="97" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">real context to stand on — removes most fabrication</text>
+    <line x1="380" y1="104" x2="380" y2="120" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#ld-arrow)"></line>
+
+    <!-- Layer 2 -->
+    <rect x="185" y="122" width="390" height="40" rx="9" fill="var(--color-surface)" stroke="var(--color-border)"></rect>
+    <rect x="185" y="122" width="4" height="40" rx="2" fill="#3B6EA5"></rect>
+    <text x="380" y="140" text-anchor="middle" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">2 · Forced citation</text>
+    <text x="380" y="155" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">every claim points at a file · function · line</text>
+    <line x1="380" y1="162" x2="380" y2="178" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#ld-arrow)"></line>
+
+    <!-- Layer 3 -->
+    <rect x="220" y="180" width="320" height="40" rx="9" fill="var(--color-surface)" stroke="var(--color-border)"></rect>
+    <rect x="220" y="180" width="4" height="40" rx="2" fill="#C9821B"></rect>
+    <text x="380" y="198" text-anchor="middle" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">3 · Gaps field</text>
+    <text x="380" y="213" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">a sanctioned "I don't have this part"</text>
+
+    <!-- Output label -->
+    <text x="380" y="238" text-anchor="middle" font-family="var(--font-sans)" font-size="12" font-style="italic" fill="var(--color-muted)">→ rare, catchable misses</text>
+  </svg>
+</Diagram>

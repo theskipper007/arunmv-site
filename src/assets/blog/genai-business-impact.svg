@@ -1,0 +1,49 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>A GenAI project that delivered measurable business impact</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="540" cy="180" rx="200" ry="175" fill="url(#glow)"/>
+
+  <!-- baseline -->
+  <line x1="432" y1="300" x2="652" y2="300" stroke="#2a3038" stroke-width="1"/>
+
+  <!-- rising bars: the metric moving up -->
+  <g>
+    <rect x="446" y="252" width="26" height="48" rx="2" fill="#1b2030" stroke="#2a3038" stroke-width="1"/>
+    <rect x="486" y="222" width="26" height="78" rx="2" fill="#22243a" stroke="#3a3a6a" stroke-width="1"/>
+    <rect x="526" y="184" width="26" height="116" rx="2" fill="#2a2a52" stroke="#6366F1" stroke-width="1.1"/>
+    <rect x="566" y="138" width="26" height="162" rx="2" fill="#312f63" stroke="#8B5CF6" stroke-width="1.2"/>
+    <rect x="566" y="138" width="26" height="162" rx="2" fill="#6366F1" opacity="0.18"/>
+  </g>
+
+  <!-- trend line proving the lift, with arrowhead -->
+  <path d="M452 270 L498 244 L538 206 L582 150"
+        fill="none" stroke="#22D3EE" stroke-width="2" opacity="0.85" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M582 150 l-13 4 l7 9 z" fill="#22D3EE" opacity="0.9"/>
+  <g fill="#0a0d12" stroke="#22D3EE" stroke-width="1.6">
+    <circle cx="452" cy="270" r="3.2"/><circle cx="498" cy="244" r="3.2"/>
+    <circle cx="538" cy="206" r="3.2"/>
+  </g>
+  <circle cx="582" cy="150" r="10" fill="#22D3EE" opacity="0.4" filter="url(#blur)"/>
+
+  <!-- text -->
+  <text x="56" y="106" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#6366F1">AI ENGINEERING · CASE STUDY</text>
+  <text x="55" y="162" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">GenAI That Moved</text>
+  <text x="55" y="204" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">a Business Metric</text>
+  <text x="55" y="242" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="700" letter-spacing="-0.01em" fill="#8B5CF6">— and proved it</text>
+  <line x1="56" y1="262" x2="200" y2="262" stroke="#6366F1" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="312" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">Name the number you moved · architecture is the price of entry</text>
+</svg>

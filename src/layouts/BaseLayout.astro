@@ -30,15 +30,21 @@ const props = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="theme-color" content="#FBFAF8" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />
+    {/* Dark is the site default; keep the browser chrome in step. */}
+    <meta name="theme-color" content="#111110" />
 
-    {/* Set theme before paint to avoid a flash (spec §7). */}
+    {/* Set theme before paint to avoid a flash (spec §7). Dark is the site
+        default; a previously saved choice (light or dark) always wins. Re-applied
+        after each View-Transitions swap so navigation never reverts the theme. */}
     <script is:inline>
       (() => {
-        const stored = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        document.documentElement.dataset.theme = stored ?? (prefersDark ? "dark" : "light");
+        const apply = () => {
+          const stored = localStorage.getItem("theme");
+          document.documentElement.dataset.theme =
+            stored === "light" || stored === "dark" ? stored : "dark";
+        };
+        apply();
+        document.addEventListener("astro:after-swap", apply);
       })();
     </script>
 

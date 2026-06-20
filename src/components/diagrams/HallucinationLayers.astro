@@ -1,0 +1,48 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="No single layer eliminates hallucination — they stack. Grounding gives the model real evidence, prompt architecture constrains what it can say, verification catches what slips through, and observability keeps the whole thing honest in production."
+>
+  <svg viewBox="0 0 760 232" role="img" aria-label="Four stacked defensive layers against hallucination: layer 1 grounding with RAG and citations, layer 2 prompt architecture constraining output, layer 3 verification via NLI and LLM-as-judge, layer 4 observability tracking hallucination rate in production. A confident-wrong claim is filtered progressively until only rare, catchable errors remain.">
+    <defs>
+      <marker id="hl-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--color-faint)"></path>
+      </marker>
+    </defs>
+
+    <text x="20" y="16" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">a confident-wrong claim enters here ↓ — each layer removes more of it</text>
+
+    <!-- Layer 1 grounding -->
+    <rect x="40" y="28" width="680" height="38" rx="8" fill="color-mix(in oklab, #2E8B57 8%, var(--color-surface))" stroke="#2E8B57"></rect>
+    <text x="58" y="46" font-family="var(--font-sans)" font-size="12.5" font-weight="700" fill="var(--color-ink)">1 · Grounding</text>
+    <text x="58" y="59" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">RAG · hybrid retrieval + rerank · citations — evidence, not memory</text>
+
+    <!-- Layer 2 prompt -->
+    <rect x="92" y="74" width="576" height="38" rx="8" fill="color-mix(in oklab, var(--color-accent) 8%, var(--color-surface))" stroke="var(--color-accent)"></rect>
+    <text x="110" y="92" font-family="var(--font-sans)" font-size="12.5" font-weight="700" fill="var(--color-ink)">2 · Prompt architecture</text>
+    <text x="110" y="105" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">"only use the context" · JSON schema · "I don't know" is valid</text>
+
+    <!-- Layer 3 verification -->
+    <rect x="144" y="120" width="472" height="38" rx="8" fill="color-mix(in oklab, #3B6EA5 9%, var(--color-surface))" stroke="#3B6EA5"></rect>
+    <text x="162" y="138" font-family="var(--font-sans)" font-size="12.5" font-weight="700" fill="var(--color-ink)">3 · Verification</text>
+    <text x="162" y="151" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">NLI faithfulness · LLM-as-judge · confidence-based escalation</text>
+
+    <!-- Layer 4 observability -->
+    <rect x="196" y="166" width="368" height="38" rx="8" fill="color-mix(in oklab, #6B7280 10%, var(--color-surface))" stroke="#6B7280"></rect>
+    <text x="214" y="184" font-family="var(--font-sans)" font-size="12.5" font-weight="700" fill="var(--color-ink)">4 · Observability</text>
+    <text x="214" y="197" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">hallucination rate as a metric · assertion scoring · feedback</text>
+
+    <!-- outcome -->
+    <text x="380" y="224" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">↓ rare, catchable errors — managed, not eliminated</text>
+
+    <!-- connectors -->
+    <g stroke="var(--color-faint)" stroke-width="1.2" stroke-dasharray="3 3">
+      <line x1="380" y1="66" x2="380" y2="73" marker-end="url(#hl-arrow)"></line>
+      <line x1="380" y1="112" x2="380" y2="119" marker-end="url(#hl-arrow)"></line>
+      <line x1="380" y1="158" x2="380" y2="165" marker-end="url(#hl-arrow)"></line>
+      <line x1="380" y1="204" x2="380" y2="211" marker-end="url(#hl-arrow)"></line>
+    </g>
+  </svg>
+</Diagram>

@@ -1,0 +1,82 @@
+---
+title: "The Hallucination Problem: What Reduced Ours, What Didn't"
+description: "Most LLM hallucination is a retrieval failure in disguise. Fix the context first, force citations, and give the model a sanctioned way to say 'I don't know.'"
+pubDate: 2026-03-30
+category: ai-engineering
+audience: technical
+tags: ["hallucination", "rag", "retrieval", "evaluation", "llmops"]
+heroImage: ../../assets/blog/hallucination-problem.svg
+featured: false
+draft: false
+---
+
+import LayeredDefense from "../../components/diagrams/LayeredDefense.astro";
+
+<Tldr>
+
+Most hallucination is a **retrieval failure wearing a generation costume**. Before reaching for clever decoding tricks or verification chains, check whether the model is being handed context that actually contains the answer — and give it a sanctioned way to say it isn't. Grounding plus a way to admit gaps removes the dangerous middle case: the confident, fluent answer built on nothing.
+
+</Tldr>
+
+The worst hallucinations aren't the obviously wrong ones. Those get caught. The dangerous ones are fluent, specific, and confidently formatted — a clean paragraph with a number in it that happens to be invented. They pass the eye test, which is exactly why they reach the user.
+
+Mine showed up as invented code. The system answers engineering questions by reading real source and synthesizing — and when it was wrong, it was wrong in the most convincing possible way: it would cite a function name that didn't exist, or attach a line number to a file that had no such line, in a paragraph that read exactly like the correct ones. An engineer trusts an answer that names `resolveProductScope` at `scope.ts:42`; they don't re-check it. That's the failure that erodes trust fastest, because <mark>the format *is* the credibility</mark>.
+
+The feature was a contextual answer tool — ask a question about the codebase, get a synthesized answer grounded in the actual code and tickets. When it made things up, the cost was an engineer acting on a function or contract that wasn't really there, then quietly learning not to rely on the tool. A search tool that returns nothing is a minor annoyance. A generative tool that returns convincing fiction is a liability, because <u>fluency reads as authority</u>.
+
+## The thing I got wrong at the start
+
+I spent the first stretch treating hallucination as a generation problem — something to fix at the model, with better prompting and stricter instructions. That framing was mostly wrong, and it cost me time. When I actually traced the failures, a large share of them weren't the model inventing things out of nothing. They were <mark>the model answering faithfully from context that didn't contain the answer</mark>. My own stage-attribution numbers made this undeniable: of the queries that failed, the single largest chunk were *retrieval* misses — the file with the answer never entered the candidate pool — and a smaller slice were cases where good context was fetched and the model simply didn't ground its claim in it. Retrieval had handed the model weak or off-topic chunks, and a model asked a question it can't ground will reliably fill the gap. The upstream cause of most "hallucination" was retrieval quality. Fix the context and a whole class of fabrication disappears before you've touched the prompt.
+
+## What moved the needle
+
+Improving retrieval came first, because of the above — better recall and tighter precision on the context meant the model had real material to stand on instead of a gap to paper over. Concretely that meant a multi-prong hybrid retrieval (dense vectors, lexical search, symbol-name matching, and file-path matching) fused together, then a re-ranking pass to tighten precision before anything reached the model, and an embedding model specialized for code rather than a general-purpose one. This was the highest-leverage change and the least glamorous.
+
+Forced citation was second. The synthesis step is instructed to attribute every claim to a concrete artifact — a file path, a function, a line — and to return its answer as structured output that carries those references. Requiring attribution does two things: it gives the reader a way to verify, and it constrains the model toward claims it can actually point at. An answer that has to cite its source is structurally harder to fabricate. (The honest caveat: encouraging citation is not the same as enforcing it — a model can still cite confidently and wrongly — which is exactly why citation had to be paired with the next two things rather than trusted on its own.)
+
+Teaching the model to say what it *couldn't* find was third and underrated. Rather than a binary refuse, the answer contract carries an explicit `gaps` field — alongside the answer, the model has to enumerate what the retrieved context did not cover. That sanctioned channel for "I don't have this part" turned a category of confident-wrong answers into honest, scoped non-answers: the model fills the gaps list instead of inventing a fact to plug the hole. Users trust a system that names its blind spots far more than one that's occasionally, invisibly wrong.
+
+<LayeredDefense />
+
+<Callout type="do" title="Give the model a sanctioned way to say 'I don't have this'">
+Don't make it a binary refuse. Add an explicit `gaps` field to the answer contract so the model *enumerates* what the retrieved context didn't cover, alongside whatever it could answer. A scoped non-answer keeps trust; an invented fact spends it.
+</Callout>
+
+I deliberately did *not* reach for chain-of-verification or self-consistency as a first move. Both add inference cost — extra passes, extra latency — and on this workload the failures didn't have the shape those techniques fix, which brings me to what didn't help.
+
+## What did not help
+
+Sampling multiple answers and keeping the consistent one — self-consistency — did almost nothing for me, and for a specific reason: my failures were *correlated*. When retrieval handed the model the wrong context, every sample drew from that same wrong context and confidently agreed on the same wrong answer. Consistency across samples measures the model's stability, not its correctness, and a stable wrong answer is exactly the dangerous case. I also tried simply using a stronger synthesis model on the failing queries; it was just as confidently wrong, because the gap was never the model's reasoning, it was the material it had been handed.
+
+<Callout type="dont" title="Don't reach for self-consistency when your errors are correlated">
+Self-consistency averages out *random, independent* errors. Retrieval failures are systematic — every sample draws from the same wrong context and confidently agrees on the same wrong answer. Sampling just re-rolls a loaded die. Measure the shape of your failures before picking the technique.
+</Callout>
+
+The reason this matters to say out loud: self-consistency genuinely works somewhere — on tasks where errors are random and independent, sampling averages them out. It didn't work *here* because my errors were systematic, driven by retrieval, so sampling just re-rolled the same loaded die. "Did not help in our setting" is a more useful sentence than "doesn't work," and it's the kind of specificity that tells a senior reader you measured rather than guessed.
+
+## The result
+
+<Callout type="output" title="Stage-attribution, most recent run">
+
+- **Synthesis-stage failures: 4%** — good context fetched, answer ungrounded
+- **Bulk of remaining misses now live in retrieval** — visible, and where I can keep chipping
+- Convincing-but-fabricated answers went from a **recurring category** to a **rare exception**
+
+</Callout>
+
+On the eval set, the share of queries where the model was handed good context and still failed to ground its answer dropped into the low single digits — the most recent stage-attribution run put synthesis-stage failures at 4%, with the bulk of remaining misses now living in retrieval, where they belong and where I can keep chipping at them. Groundedness rose in step with it: where convincing-but-fabricated answers used to surface on a recurring basis, the same eval set now shows them as the rare exception rather than a standing category. The honest framing is that hallucination didn't go to zero and won't; it went from a recurring, trust-eroding problem to a rare and mostly catchable one.
+
+## The takeaway
+
+Most hallucination is a retrieval failure wearing a generation costume. Before reaching for clever decoding tricks or verification chains, check whether the model is being handed context that actually contains the answer — and give it a sanctioned way to say it isn't. Grounding plus a way to admit gaps removes the dangerous middle case: the confident, fluent answer built on nothing.
+
+<Callout type="reference" title="Papers worth reading next">
+
+- Dhuliawala et al., [*Chain-of-Verification Reduces Hallucination in Large Language Models*](https://arxiv.org/abs/2309.11495) (2023) — the verification approach I deliberately didn't start with, and when it earns its cost.
+- Wang et al., [*Self-Consistency Improves Chain of Thought Reasoning*](https://arxiv.org/abs/2203.11171) (2022) — where sampling *does* help: random, independent errors.
+
+</Callout>
+
+---
+
+*This post discusses techniques for reducing model errors; treat the specifics as engineering experience rather than guarantees — no method eliminates hallucination entirely.*

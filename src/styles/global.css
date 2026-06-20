@@ -129,6 +129,22 @@
   .prose strong {
     font-weight: 650;
   }
+  /* Restrained highlight — one accent tint, theme-aware, wraps cleanly across lines. */
+  .prose mark {
+    background: color-mix(in oklab, var(--color-accent) 16%, transparent);
+    color: inherit;
+    padding: 0.05em 0.2em;
+    border-radius: var(--radius-sm);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  /* Underline for emphasis that isn't a link — keeps ink text, accent rule. */
+  .prose u {
+    text-decoration-color: color-mix(in oklab, var(--color-accent) 55%, transparent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+    text-decoration-skip-ink: none;
+  }
   .prose blockquote {
     border-left: 3px solid var(--color-accent);
     padding-left: 1.25rem;
@@ -219,15 +235,13 @@ html[data-theme="dark"] .astro-code span {
 body {
   position: relative;
   background-image:
-    radial-gradient(60rem 60rem at 12% -8%, color-mix(in oklab, var(--color-accent) 12%, transparent), transparent 60%),
-    radial-gradient(50rem 50rem at 100% 0%, color-mix(in oklab, #6d63f1 10%, transparent), transparent 55%);
+    radial-gradient(55rem 55rem at 12% -10%, color-mix(in oklab, var(--color-accent) 7%, transparent), transparent 60%);
   background-attachment: fixed;
   background-repeat: no-repeat;
 }
 :root[data-theme="dark"] body {
   background-image:
-    radial-gradient(60rem 60rem at 12% -8%, color-mix(in oklab, var(--color-accent) 16%, transparent), transparent 60%),
-    radial-gradient(50rem 50rem at 100% 0%, color-mix(in oklab, #6d63f1 14%, transparent), transparent 55%);
+    radial-gradient(55rem 55rem at 12% -10%, color-mix(in oklab, var(--color-accent) 11%, transparent), transparent 60%);
 }
 
 /* ----------------------------------------------------------------------------
@@ -244,10 +258,17 @@ body {
   background: var(--color-surface);
   isolation: isolate;
 }
+/* Flush variant: bleeds to its container's edges (e.g. the featured split
+ * hero, where the parent card already supplies the border + rounded corners). */
+.cover-art--flush {
+  border: 0;
+  border-radius: 0;
+}
 .cover-media {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: var(--cover-fit, cover);
+  object-position: var(--cover-pos, center);
   display: block;
 }
 .cover-motion {

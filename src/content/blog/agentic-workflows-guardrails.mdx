@@ -1,0 +1,74 @@
+---
+title: "Agentic Workflows That Don't Spiral Out of Control"
+description: "Reliable agents come from control, not capability. Cap turns and time, push predictable steps into a state machine, and keep a human on the irreversible ones."
+pubDate: 2026-05-07
+category: ai-engineering
+audience: technical
+tags: ["agents", "reliability", "guardrails", "state-machine", "llmops"]
+heroImage: ../../assets/blog/agentic-workflows-control.svg
+featured: false
+draft: false
+---
+
+import AgentStateMachine from "../../components/diagrams/AgentStateMachine.astro";
+
+<Tldr>
+
+Reliable agents come from **control, not capability** — the model was never the bottleneck, the bounds were. Decide the maximum steps and time a task may consume *before* it runs, push every predictable part of the flow into deterministic code, and keep a human on the irreversible steps. The goal isn't an agent that can do anything; it's one that can't do anything catastrophic.
+
+</Tldr>
+
+The first time I watched an agent fail, it didn't crash. It just kept going. Same tool, slightly different arguments, over and over, each step convinced it was about to get there, the cost ticking up in the background while it made no progress at all. The demo had shown me what the agent could do. It hadn't shown me what it would do when it got stuck.
+
+Mine was a coding agent — give it a ticket, let it research the codebase, plan a change, and implement it. The first time it got truly stuck, it was hunting for a symbol that didn't exist under the name it expected. It searched, read a file, didn't find it, searched again with a slightly reworded query, read another file, and kept circling — re-deriving the same dead end with no memory that it had already been there. I found it by scrolling a log that had quietly grown to hundreds of tool calls. Nothing had errored. It was just never going to stop on its own.
+
+The agent's job was to take a real engineering task end to end across a live codebase — read the relevant code and tickets, propose a plan, then write the change. The capability was real. The reliability was not, and in production reliability is the only thing that counts. An agent that succeeds eighty percent of the time and burns an unbounded amount of money the other twenty isn't an eighty-percent solution. It's an incident waiting for a trigger.
+
+## How it spiraled
+
+The failure was an open-ended search-and-read loop with no hard stop: repeated calls to the same tools, reworded just enough to look like progress, with no convergence and no awareness that the world hadn't changed between attempts. Underneath it was the structural problem — the agent had been handed one big undifferentiated loop and asked to "figure it out."
+
+The pattern underneath most of these is the same: an open-ended loop with no hard stop. ReAct-style reasoning — think, act, observe, repeat — is powerful precisely because it's open-ended, and that's also exactly why it's dangerous. Reflection loops make it worse before they make it better: a model asked to critique its own work will always find something to improve, so without a bound it will refine forever. <mark>Capability without constraint doesn't fail loudly. It fails by never stopping.</mark>
+
+<Callout type="reference" title="The patterns this is reacting to">
+
+- Yao et al., [*ReAct: Synergizing Reasoning and Acting in Language Models*](https://arxiv.org/abs/2210.03629) (2022) — the think-act-observe loop, powerful and open-ended by design.
+- Shinn et al., [*Reflexion: Language Agents with Verbal Reinforcement Learning*](https://arxiv.org/abs/2303.11366) (2023) — self-critique that improves results, and will refine forever without a bound.
+
+</Callout>
+
+## The guardrails that fixed it
+
+I stopped trying to make the agent smarter and started making its environment stricter. The capability was already there; what was missing was control.
+
+Hard bounds came first. Every run is capped at a fixed number of model turns — fifty — and when it hits the ceiling it terminates and returns the best result so far rather than continuing. Wall-clock timeouts sit under every external call: the slow tools (search, design fetches, ticket lookups) are capped at three minutes, a repository clone at sixty seconds, a diff at ten, each falling back instead of hanging. <mark>The turn cap is doing double duty as a cost ceiling</mark> — a run that physically cannot exceed fifty model turns cannot quietly bankrupt you, no matter how confused it gets. These aren't elegant, and they're the difference between a bounded system and an unbounded liability.
+
+<Callout type="do" title="Put a hard ceiling on turns and time before the run starts">
+A fixed turn cap (here: fifty) that returns the best result so far on hit, plus a wall-clock
+timeout under *every* external call. The turn ceiling doubles as a cost ceiling — a run that
+physically can't exceed fifty model turns can't quietly bankrupt you, however confused it gets.
+</Callout>
+
+The honest gap, and the guardrail I'd add next: I bound *turns* and *time*, not no-progress directly. A proper circuit breaker would notice the same tool being called with no state change and break out on the spot rather than waiting for the turn cap to catch it — if an agent takes the same action twice and the world hasn't changed, it's stuck, and a third attempt is waste. Today the turn ceiling is the backstop that catches that; making the detection explicit is the obvious next step, and I'd rather say that plainly than pretend the breaker already exists.
+
+The structural change that mattered most was narrowing where the agent got to be open-ended at all. The run isn't one loop — it's a state machine with explicit phases: research, then plan, then *wait*, then implement, then visual QA, then fix. Only inside a phase does the model actually loop, and even there it's bounded by the turn cap. Most of what an "agent" does is a known sequence that doesn't need a model deciding what comes next. Encoding that as a deterministic flow and reserving the open-ended reasoning for the one or two steps that genuinely need judgment removed most of the surface area where spiraling was even possible. <mark>Open-ended loops are for ambiguity; everything else should be a state machine.</mark>
+
+<AgentStateMachine />
+
+For the consequential actions, I added a human-in-the-loop checkpoint. After the agent researches and writes a plan, the run *stops* at an explicit approval gate — it will not touch code until a human responds "approve." And it never opens a pull request on its own: it produces changes in a working tree and a diff for a person to review before anything is pushed. Not everything needs a human, but the irreversible steps do, and a checkpoint there turns a potential mess into a pause.
+
+<Callout type="dont" title="Don't let the model decide what step comes next">
+If a sequence is knowable in advance — research, plan, implement, QA — encode it as deterministic
+code, not as something the model re-derives each turn. Reserve open-ended looping for the one or
+two steps that genuinely need judgment, and put a human gate in front of anything irreversible
+(touching code, opening a PR). Every step you hand the model to "figure out" is surface area for
+spiraling.
+</Callout>
+
+## The result
+
+The change isn't a cleverer agent; it's a predictable one. Runaway executions went to zero — not because the model got better at not getting stuck, but because it can no longer get stuck for more than fifty turns or three minutes of any single call, and it can't write anything a human didn't approve first. Worth stating honestly: the constrained agent is sometimes *less* capable on the hardest cases, because it gives up where the unconstrained one would have kept trying, and a human now sits in the critical path on every task. That tradeoff is the entire point. A predictable system that occasionally declines beats an unpredictable one that occasionally costs you a fortune.
+
+## The takeaway
+
+Reliable agents come from control, not capability. The model was never the bottleneck — the bounds were. Decide the maximum steps and time a task may consume before the agent runs, push every predictable part of the flow into deterministic code, and keep a human on the irreversible steps. The goal isn't an agent that can do anything. It's one that can't do anything catastrophic.

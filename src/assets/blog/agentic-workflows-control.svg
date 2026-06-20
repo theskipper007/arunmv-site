@@ -1,0 +1,46 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Agentic workflows that don't spiral out of control</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="540" cy="180" rx="200" ry="175" fill="url(#glow)"/>
+
+  <!-- bounded agent loop: a contained cycle with a human gate -->
+  <rect x="452" y="104" width="178" height="158" rx="12" fill="none" stroke="#6366F1" stroke-width="1.2" stroke-dasharray="5 5" opacity="0.55"/>
+  <g fill="none" stroke="#22D3EE" stroke-width="2" stroke-linecap="round">
+    <path d="M541 142 a40 40 0 1 1 -28 11" opacity="0.85"/>
+  </g>
+  <path d="M513 153 l-2 -13 l13 4 z" fill="#22D3EE" opacity="0.9"/>
+  <g fill="#0a0d12" stroke="#6366F1" stroke-width="1.5">
+    <circle cx="541" cy="142" r="6"/>
+    <circle cx="581" cy="182" r="6"/>
+    <circle cx="541" cy="222" r="6"/>
+    <circle cx="501" cy="182" r="6"/>
+  </g>
+  <!-- human-on-the-irreversible gate -->
+  <g transform="translate(541,182)">
+    <rect x="-13" y="-11" width="26" height="22" rx="3" fill="#1a1d2e" stroke="#8B5CF6" stroke-width="1.3"/>
+    <circle cx="0" cy="-2" r="3.4" fill="#8B5CF6"/>
+    <path d="M-6 8 a6 7 0 0 1 12 0" fill="#8B5CF6"/>
+  </g>
+
+  <!-- text -->
+  <text x="56" y="106" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#6366F1">AGENTIC AI · CONTROL</text>
+  <text x="55" y="162" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Agentic Workflows</text>
+  <text x="55" y="204" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">That Don't Spiral</text>
+  <text x="55" y="242" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="700" letter-spacing="-0.01em" fill="#8B5CF6">Out of Control</text>
+  <line x1="56" y1="262" x2="200" y2="262" stroke="#6366F1" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="312" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">Cap turns · push steps into a state machine · gate the irreversible</text>
+</svg>

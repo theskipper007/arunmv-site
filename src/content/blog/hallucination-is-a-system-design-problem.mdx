@@ -5,24 +5,30 @@ pubDate: 2026-06-09
 category: ai-engineering
 audience: technical
 tags: ["hallucination", "rag", "llmops", "evaluation"]
-heroImage: ../../assets/blog/hallucination-layers.png
+heroImage: ../../assets/blog/hallucination-layers.svg
 featured: false
 draft: false
 ---
 
-> **TL;DR.** Ground the model in retrieved evidence, constrain its output structure, verify its
-> claims, and measure everything in production. Hallucination isn't a bug you fix by swapping
-> models — it's a managed constraint you engineer around.
+import HallucinationLayers from "../../components/diagrams/HallucinationLayers.astro";
+
+<Tldr>
+
+Ground the model in retrieved evidence, constrain its output structure, verify its claims, and measure everything in production. **Hallucination isn't a bug you fix by swapping models** — it's a managed constraint you engineer around, with layered defenses.
+
+</Tldr>
 
 ## The wrong mental model
 
 When production LLMs make things up, the reflex is to go shopping for a better model. That misses a
-fundamental reality: they are next-token predictors, not knowledge-retrieval systems. They optimize
+fundamental reality: <mark>they are next-token predictors, not knowledge-retrieval systems.</mark> They optimize
 for plausible text continuity, not factual precision. Even strong models hallucinate somewhere
 between 3–20% across tasks, with higher rates in specialized domains or contradictory scenarios.
 
 Relying on model improvements alone is like building distributed systems while expecting the
-network to stop dropping packets. The model *is* the network.
+network to stop dropping packets. <mark>The model *is* the network.</mark>
+
+<HallucinationLayers />
 
 ## The reframe that changes everything
 
@@ -50,6 +56,13 @@ Production benchmarks show RAG cuts hallucinations by roughly **40–71%** on it
 
 Prompt engineering delivers underrated hallucination gains when applied systematically.
 
+<Callout type="do" title="Make 'I don't have that' a valid, rewarded answer">
+The single highest-leverage prompt instruction: *"Only derive information from the provided
+context. If the context doesn't contain the answer, say so."* Reinforce it with few-shot examples
+where "I don't have sufficient information" is the *correct* response. Most production systems omit
+this and quietly reward the model for always producing an answer.
+</Callout>
+
 - **Grounding constraints.** "Only derive information from the provided context. If the context doesn't contain the answer, explicitly say so." Most production systems omit this one critical instruction.
 - **Structured output enforcement.** Constrained decoding — mandating JSON schemas with `citations` arrays and a `confidence_score` field — simplifies validation and forces transparent reasoning. Libraries like Outlines and Guidance enforce grammar-level constraints during generation.
 - **Chain-of-thought reasoning.** Requesting step-by-step analysis before the final answer, linked to the provided evidence, measurably lowers factual errors on complex queries. The reasoning trace doubles as an audit artifact.
@@ -73,6 +86,13 @@ Production hallucination management is a continuous feedback loop, not a one-tim
 - **User feedback integration.** When users flag or edit responses, those become labeled data that improves retrieval, prompts, and any fine-tuning.
 
 ## What fine-tuning is actually for
+
+<Callout type="dont" title="Don't fine-tune to add facts">
+Fine-tuning on *new factual knowledge* paradoxically *increases* hallucination risk — the model
+gets confident about domain patterns without genuine grounding. Use RAG for facts; use fine-tuning
+for behavior — formatting, output structure, task adherence, tone. They're complementary, not
+competing.
+</Callout>
 
 Fine-tuning on *new factual knowledge* paradoxically increases hallucination risk — the model gets
 confident about domain patterns without genuine grounding. Fine-tuning shines at formatting
@@ -106,4 +126,12 @@ managed constraint, not an elimination target. The systems trusted in regulated,
 domains earn that trust because their engineers treated hallucination as a foundational systems
 concern — not an afterthought.
 
-The model is not the product. The system is.
+<mark>The model is not the product. The system is.</mark>
+
+<Callout type="reference" title="Grounding the layers in the literature">
+
+- Lewis et al., [*Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks*](https://arxiv.org/abs/2005.11401) (2020) — the original RAG, layer 1.
+- Es et al., [*RAGAS: Automated Evaluation of Retrieval Augmented Generation*](https://arxiv.org/abs/2309.15217) (2023) — turnkey faithfulness scoring for the verification layer.
+- Zheng et al., [*Judging LLM-as-a-Judge*](https://arxiv.org/abs/2306.05685) (2023) — how far a second model can be trusted to score factual consistency.
+
+</Callout>

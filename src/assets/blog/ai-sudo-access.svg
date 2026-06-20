@@ -1,0 +1,41 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>I gave AI sudo access to my legacy Node.js app</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="540" cy="180" rx="200" ry="175" fill="url(#glow)"/>
+
+  <!-- terminal window + self-healing loop -->
+  <g transform="translate(450,118)">
+    <rect x="0" y="0" width="180" height="118" rx="8" fill="#11151c" stroke="#2a3038" stroke-width="1.2"/>
+    <line x1="0" y1="22" x2="180" y2="22" stroke="#2a3038" stroke-width="1"/>
+    <circle cx="14" cy="11" r="3" fill="#3a4049"/><circle cx="26" cy="11" r="3" fill="#3a4049"/><circle cx="38" cy="11" r="3" fill="#3a4049"/>
+    <text x="14" y="48" font-family="'SFMono-Regular', Consolas, monospace" font-size="11" fill="#22D3EE">$ tail -f app.log</text>
+    <text x="14" y="68" font-family="'SFMono-Regular', Consolas, monospace" font-size="11" fill="#8B5CF6"># error → claude fix</text>
+    <text x="14" y="88" font-family="'SFMono-Regular', Consolas, monospace" font-size="11" fill="#6b7280">$ build &amp;&amp; restart</text>
+    <text x="14" y="106" font-family="'SFMono-Regular', Consolas, monospace" font-size="11" fill="#22D3EE">✓ 12 bugs fixed</text>
+  </g>
+  <!-- loop arrow wrapping the terminal -->
+  <path d="M444 130 a96 70 0 1 0 192 0" fill="none" stroke="#22D3EE" stroke-width="1.4" stroke-dasharray="5 5" opacity="0.5"/>
+  <path d="M636 130 l-7 -7 m7 7 l-7 7" fill="none" stroke="#22D3EE" stroke-width="1.6" opacity="0.6" stroke-linecap="round"/>
+
+  <!-- text -->
+  <text x="56" y="106" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#22D3EE">AGENTS · EXPERIMENT</text>
+  <text x="55" y="162" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">I Gave AI</text>
+  <text x="55" y="204" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Sudo Access</text>
+  <text x="55" y="242" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="700" letter-spacing="-0.01em" fill="#22D3EE">It Fixed 12 Bugs</text>
+  <line x1="56" y1="262" x2="200" y2="262" stroke="#22D3EE" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="312" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">Tail the logs · feed errors to Claude · fix, build, restart — unattended</text>
+</svg>

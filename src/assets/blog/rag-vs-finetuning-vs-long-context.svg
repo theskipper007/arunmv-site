@@ -1,0 +1,47 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>RAG vs fine-tuning vs long context: a decision framework</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="540" cy="180" rx="200" ry="175" fill="url(#glow)"/>
+
+  <!-- decision fork: one node branching into three choices -->
+  <g stroke-width="1.4" fill="none" opacity="0.65">
+    <path d="M470 182 H510" stroke="#3a4049"/>
+    <path d="M510 182 C540 182 540 116 580 116" stroke="#6366F1"/>
+    <path d="M510 182 H580" stroke="#22D3EE"/>
+    <path d="M510 182 C540 182 540 248 580 248" stroke="#8B5CF6"/>
+  </g>
+  <!-- source node -->
+  <path d="M470 182 l-14 -9 v18 z" fill="#f2f5f7"/>
+  <circle cx="470" cy="182" r="6" fill="#13172a" stroke="#f2f5f7" stroke-width="1.5"/>
+  <!-- three leaf chips -->
+  <g font-family="Inter, sans-serif" font-size="11" font-weight="700">
+    <rect x="580" y="104" width="64" height="24" rx="6" fill="#181d33" stroke="#6366F1" stroke-width="1.2"/>
+    <text x="612" y="120" text-anchor="middle" fill="#6366F1">RAG</text>
+    <rect x="580" y="170" width="64" height="24" rx="6" fill="#142a30" stroke="#22D3EE" stroke-width="1.2"/>
+    <text x="612" y="186" text-anchor="middle" fill="#22D3EE">Long ctx</text>
+    <rect x="580" y="236" width="64" height="24" rx="6" fill="#211b33" stroke="#8B5CF6" stroke-width="1.2"/>
+    <text x="612" y="252" text-anchor="middle" fill="#8B5CF6">Fine-tune</text>
+  </g>
+
+  <!-- text -->
+  <text x="56" y="106" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#6366F1">DECISION FRAMEWORK</text>
+  <text x="55" y="162" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="36" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">RAG vs Fine-Tuning</text>
+  <text x="55" y="202" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="36" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">vs Long Context</text>
+  <text x="55" y="240" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="26" font-weight="700" letter-spacing="-0.01em" fill="#6366F1">My Decision Framework</text>
+  <line x1="56" y1="260" x2="200" y2="260" stroke="#6366F1" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="310" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">Knowledge or behavior? · how often does the answer change?</text>
+</svg>

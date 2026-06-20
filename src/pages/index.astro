@@ -1,61 +1,83 @@
 ---
 import { ArrowRight } from "@lucide/astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import PostCard from "../components/content/PostCard.astro";
+import FeaturedHero from "../components/content/FeaturedHero.astro";
+import PostListItem from "../components/content/PostListItem.astro";
+import TrustStrip from "../components/content/TrustStrip.astro";
+import AboutPreview from "../components/content/AboutPreview.astro";
 import BuildInProgress from "../components/content/BuildInProgress.astro";
-import { getPublishedPosts } from "../lib/collections";
+import GithubIcon from "../components/ui/icons/GithubIcon.astro";
 import { SITE } from "../lib/seo";
+import { getPublishedPosts } from "../lib/collections";
 
-const posts = (await getPublishedPosts()).slice(0, 3);
+const posts = await getPublishedPosts();
+const featured = posts.find((p) => p.data.featured) ?? posts[0];
+const recent = posts.filter((p) => p.id !== featured?.id).slice(0, 4);
 ---
 
 <BaseLayout>
-  <section class="mx-auto px-6 pb-12 pt-20 sm:pt-28" style="max-width: var(--content-max);">
-    <p
-      class="font-mono font-medium text-muted"
-      style="font-size: clamp(1.25rem, 3vw, 1.75rem);"
+  {/* ── Hero: a full-bleed typographic statement ─────────────────────── */}
+  <section class="hero-band">
+    <div
+      class="reveal mx-auto flex flex-col justify-center px-6 pt-16 pb-12 sm:pt-24 sm:pb-16"
+      style="max-width: var(--content-max); min-height: 70vh;"
     >
-      Hi, I'm Arun <span class="inline-block">👋</span>
-    </p>
-    <h1
-      class="mt-4 max-w-3xl font-sans font-bold leading-[1.05] tracking-tight text-ink"
-      style="font-size: clamp(2.75rem, 6.5vw, 4.25rem);"
-    >
-      {SITE.tagline}
-    </h1>
-    <p class="mt-5 max-w-xl text-lg text-muted">
-      Fullstack engineer by training. AI engineer by necessity. Cost-aware by trauma.
-    </p>
-    <div class="mt-8 flex flex-wrap gap-3">
-      <a
-        href="/blog"
-        class="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent px-4 py-2.5 text-sm font-medium text-white no-underline transition-colors hover:bg-[var(--color-accent-hover)]"
+      <h1
+        class="font-sans font-bold tracking-tight text-ink"
+        style="font-size: clamp(3rem, 10vw, 7rem); line-height: 0.95;"
       >
-        Read the blog <ArrowRight size={16} stroke-width={2} />
-      </a>
-      <a
-        href="/projects"
-        class="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-border px-4 py-2.5 text-sm no-underline transition-colors hover:border-accent hover:text-accent"
-      >
-        See projects
-      </a>
+        Architecting<br /><span class="text-accent">Intelligence.</span>
+      </h1>
+      <p class="mt-7 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl">
+        Senior AI Engineer bridging the chasm between theoretical research and production
+        systems. Specializing in <strong class="font-semibold text-ink">Agentic Solutions</strong>
+        and <strong class="font-semibold text-ink">Retrieval-Augmented Generation</strong>.
+      </p>
+      <div class="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <a
+          href="/projects"
+          class="inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-ink px-6 py-3 text-sm font-medium text-paper no-underline transition-transform hover:-translate-y-0.5"
+        >
+          View Case Studies <ArrowRight size={16} stroke-width={2} />
+        </a>
+        <a
+          href={SITE.github}
+          target="_blank"
+          rel="me noopener"
+          class="inline-flex items-center gap-2 text-sm font-medium text-muted no-underline transition-colors hover:text-ink"
+        >
+          <GithubIcon size={18} stroke-width={1.5} /> GitHub
+        </a>
+      </div>
     </div>
   </section>
 
+  {/* ── Trust strip ─────────────────────────────────────────────────── */}
+  <TrustStrip />
+
+  {/* ── Writing: one featured + a calm text list ────────────────────── */}
   <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
     <div class="flex items-baseline justify-between">
-      <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Latest writing</h2>
+      <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Writing</h2>
       <a href="/blog" class="font-mono text-xs text-muted no-underline hover:text-accent">all →</a>
     </div>
-    <div
-      class="mt-4 grid gap-5"
-      style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"
-    >
-      {posts.map((post) => <PostCard post={post} />)}
-      {posts.length === 0 && <p class="py-8 text-faint">No posts yet.</p>}
-    </div>
+
+    {
+      featured && (
+        <div class="mt-5 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <FeaturedHero post={featured} />
+          <div class="reveal flex flex-col divide-y divide-border">
+            {recent.map((post) => (
+              <PostListItem post={post} />
+            ))}
+          </div>
+        </div>
+      )
+    }
+    {!featured && <p class="mt-5 py-8 text-faint">No posts yet.</p>}
   </section>
 
+  {/* ── Selected work ───────────────────────────────────────────────── */}
   <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
     <div class="flex items-baseline justify-between">
       <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Selected work</h2>
@@ -63,12 +85,97 @@ const posts = (await getPublishedPosts()).slice(0, 3);
         all →
       </a>
     </div>
-    <div class="reveal mt-4">
+    <div class="reveal mt-5">
       <BuildInProgress
-        title="Coming soon"
-        message="Project case studies are being written up. In the meantime, the writing is the best window into how I work."
+        title="Case studies in progress"
+        message="I'm writing up a few projects properly — outcome, stack, and what I'd do differently. For now, the writing is the clearest window into how I work."
         compact
       />
     </div>
   </section>
+
+  {/* ── About preview ───────────────────────────────────────────────── */}
+  <AboutPreview />
 </BaseLayout>
+
+<style>
+  /* Subtle dot-grid texture behind the hero — paint-only, fades toward the
+   * lower edge so it never competes with the headline. Theme-aware via --color-ink. */
+  .hero-band {
+    position: relative;
+    isolation: isolate;
+  }
+  .hero-band::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--color-ink) 9%, transparent) 1px,
+      transparent 1.5px
+    );
+    background-size: 24px 24px;
+    -webkit-mask-image: radial-gradient(125% 100% at 50% 0%, #000 28%, transparent 72%);
+    mask-image: radial-gradient(125% 100% at 50% 0%, #000 28%, transparent 72%);
+    pointer-events: none;
+  }
+
+  /* Soft accent aurora behind the dot-grid — two blurred blobs that drift very
+   * slowly so the hero breathes without distracting. Transform/opacity only
+   * (GPU-friendly); honors prefers-reduced-motion via the global guard. */
+  .hero-band::after {
+    content: "";
+    position: absolute;
+    inset: -25% -15% auto -15%;
+    height: 150%;
+    z-index: -2;
+    background:
+      radial-gradient(
+        38% 48% at 22% 28%,
+        color-mix(in oklab, var(--color-accent) 11%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        34% 42% at 82% 18%,
+        color-mix(in oklab, var(--color-accent) 7%, transparent),
+        transparent 70%
+      );
+    filter: blur(48px);
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  :root[data-theme="dark"] .hero-band::after {
+    background:
+      radial-gradient(
+        38% 48% at 22% 28%,
+        color-mix(in oklab, var(--color-accent) 16%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        34% 42% at 82% 18%,
+        color-mix(in oklab, var(--color-accent) 11%, transparent),
+        transparent 70%
+      );
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-band::after {
+      animation: heroAurora 26s var(--ease) infinite alternate;
+    }
+    @keyframes heroAurora {
+      0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 0.85;
+      }
+      50% {
+        transform: translate3d(2.5%, -2%, 0) scale(1.07);
+        opacity: 1;
+      }
+      100% {
+        transform: translate3d(-2%, 2%, 0) scale(1.03);
+        opacity: 0.8;
+      }
+    }
+  }
+</style>

@@ -1,0 +1,26 @@
+---
+// Trust strip — a single quiet mono row of capabilities.
+const ITEMS = [
+  "Agentic AI",
+  "RAG & Retrieval",
+  "Knowledge Graphs",
+  "LLM Evaluation",
+  "Cost-Aware Inference",
+  "Production AI Systems",
+];
+---
+
+<section class="mx-auto px-6 py-6" style="max-width: var(--content-max);">
+  <p
+    class="reveal flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs tracking-wide text-faint"
+  >
+    {
+      ITEMS.map((item, i) => (
+        <>
+          {i > 0 && <span aria-hidden="true">·</span>}
+          <span>{item}</span>
+        </>
+      ))
+    }
+  </p>
+</section>

@@ -1,0 +1,39 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="Stage attribution on the last eval run: 89.3% of queries cite the right source. The misses cluster in retrieval (5.3%) and synthesis (4.0%) — so a bad answer tells you which stage to fix."
+>
+  <svg viewBox="0 0 760 168" role="img" aria-label="A stacked bar of where the ground-truth source is lost across the pipeline: 89.3 percent correct, 5.3 percent lost at retrieval, 0 percent at rerank, 1.3 percent at fetch, and 4.0 percent at synthesis.">
+    <text x="20" y="26" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">Where the ground-truth source is lost</text>
+
+    <!-- Stacked bar: total width 719 from x=20 (7.19px per %) -->
+    <rect x="20" y="44" width="643" height="46" rx="3" fill="color-mix(in oklab, #2E8B57 78%, var(--color-surface))"></rect>
+    <rect x="663" y="44" width="38" height="46" fill="var(--color-accent)"></rect>
+    <rect x="701" y="44" width="29" height="46" fill="color-mix(in oklab, #C9821B 88%, var(--color-surface))"></rect>
+    <rect x="730" y="44" width="9" height="46" rx="3" fill="#6B7280"></rect>
+    <rect x="20" y="44" width="719" height="46" rx="6" fill="none" stroke="var(--color-border)"></rect>
+
+    <!-- In-bar label for the dominant segment -->
+    <text x="40" y="72" font-family="var(--font-sans)" font-size="15" font-weight="700" fill="#ffffff">89.3% cite the right source</text>
+
+    <!-- Legend -->
+    <g font-family="var(--font-mono)" font-size="11">
+      <rect x="20" y="118" width="12" height="12" rx="2" fill="color-mix(in oklab, #2E8B57 78%, var(--color-surface))"></rect>
+      <text x="38" y="128" fill="var(--color-muted)">correct 89.3%</text>
+
+      <rect x="170" y="118" width="12" height="12" rx="2" fill="var(--color-accent)"></rect>
+      <text x="188" y="128" fill="var(--color-muted)">retrieval 5.3%</text>
+
+      <rect x="318" y="118" width="12" height="12" rx="2" fill="color-mix(in oklab, #C9821B 88%, var(--color-surface))"></rect>
+      <text x="336" y="128" fill="var(--color-muted)">synthesis 4.0%</text>
+
+      <rect x="470" y="118" width="12" height="12" rx="2" fill="#6B7280"></rect>
+      <text x="488" y="128" fill="var(--color-muted)">fetch 1.3%</text>
+
+      <rect x="588" y="118" width="12" height="12" rx="2" fill="none" stroke="var(--color-border)"></rect>
+      <text x="606" y="128" fill="var(--color-muted)">rerank 0%</text>
+    </g>
+  </svg>
+</Diagram>

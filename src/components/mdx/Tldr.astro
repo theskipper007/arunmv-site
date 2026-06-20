@@ -1,0 +1,89 @@
+---
+import { ChevronDown } from "@lucide/astro";
+
+/**
+ * Collapsible TL;DR. Built on native <details> so it works with zero JS,
+ * survives View Transitions, and is keyboard-accessible out of the box.
+ * Open by default — readers can fold the long version away to skim.
+ */
+interface Props {
+  hint?: string;
+}
+const { hint = "the 30-second version" } = Astro.props;
+---
+
+<details class="tldr" open>
+  <summary>
+    <span class="tldr-badge">TL;DR</span>
+    <span class="tldr-hint">{hint}</span>
+    <ChevronDown class="tldr-chevron" size={16} stroke-width={2} />
+  </summary>
+  <div class="tldr-body">
+    <slot />
+  </div>
+</details>
+
+<style>
+  .tldr {
+    margin: 1.75rem 0;
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: color-mix(in oklab, var(--color-accent) 5%, var(--color-surface));
+  }
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.95rem;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  .tldr-badge {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    border: 1px solid color-mix(in oklab, var(--color-accent) 35%, transparent);
+    border-radius: var(--radius-pill);
+    padding: 0.15em 0.6em;
+  }
+  .tldr-hint {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--color-faint);
+  }
+  .tldr-chevron {
+    margin-left: auto;
+    color: var(--color-faint);
+    transition: transform var(--dur-base) var(--ease);
+  }
+  .tldr[open] .tldr-chevron {
+    transform: rotate(180deg);
+  }
+  .tldr-body {
+    padding: 0 0.95rem 0.95rem;
+    font-family: var(--font-sans);
+    font-size: 0.96rem;
+    line-height: 1.65;
+    color: var(--color-muted);
+  }
+  .tldr-body :global(p) {
+    margin: 0;
+  }
+  .tldr-body :global(strong) {
+    color: var(--color-ink);
+    font-weight: 650;
+  }
+</style>

@@ -1,0 +1,44 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Two decades and a few: the story of me</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="540" cy="195" rx="200" ry="175" fill="url(#glow)"/>
+
+  <!-- a winding life path rising through milestones -->
+  <path d="M425 300 C 470 300, 480 250, 520 248 S 575 270, 600 218 S 615 150, 640 120"
+        fill="none" stroke="#A855F7" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+  <g fill="#0a0d12" stroke="#F472B6" stroke-width="1.6">
+    <circle cx="425" cy="300" r="5.5"/>
+    <circle cx="520" cy="248" r="5.5"/>
+    <circle cx="600" cy="218" r="5.5"/>
+  </g>
+  <!-- destination, glowing -->
+  <circle cx="640" cy="120" r="14" fill="#F472B6" opacity="0.45" filter="url(#blur)"/>
+  <circle cx="640" cy="120" r="7" fill="#F472B6"/>
+
+  <!-- scattered curiosity sparks -->
+  <g fill="#A855F7" opacity="0.45">
+    <circle cx="470" cy="160" r="1.8"/><circle cx="560" cy="135" r="1.8"/>
+    <circle cx="500" cy="200" r="1.8"/><circle cx="595" cy="170" r="1.8"/>
+  </g>
+
+  <!-- text -->
+  <text x="56" y="106" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#F472B6">THE STORY OF ME</text>
+  <text x="55" y="164" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="42" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Two Decades</text>
+  <text x="55" y="210" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="42" font-weight="700" letter-spacing="-0.02em" fill="#F472B6">and a Few</text>
+  <line x1="56" y1="232" x2="200" y2="232" stroke="#F472B6" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="278" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">24 years of trying everything — and why the journey wins</text>
+</svg>

@@ -1,0 +1,67 @@
+---
+title: "A GenAI Project That Delivered Measurable Business Impact"
+description: "A GenAI project succeeds or fails on whether you can name the business metric it moved — and prove it. The architecture is the price of entry, not the win."
+pubDate: 2026-06-18
+category: ai-engineering
+audience: technical
+tags: ["genai", "rag", "case-study", "business-impact", "architecture"]
+heroImage: ../../assets/blog/genai-business-impact.svg
+featured: true
+draft: false
+---
+
+import SystemArchitecture from "../../components/diagrams/SystemArchitecture.astro";
+
+<Tldr>
+
+A GenAI project succeeds or fails on whether you can **name the business metric it moved — and prove you moved it.** The architecture has to be sound, but soundness is the price of entry, not the win. Build the thing well, then translate what it did into the language of the person who paid for it.
+
+</Tldr>
+
+The technically interesting parts of this project weren't the parts that mattered to the business, and learning to tell the difference is most of what made it succeed. The architecture was satisfying to build. But <mark>the only sentence anyone outside the team remembers is the one with the number in it</mark> — and that number is the whole reason the project earned a second phase instead of a quiet shutdown.
+
+The problem was that knowledge about our own engineering org was scattered and slow to retrieve. To answer "where is this handled," "how does this flow actually work," or "what does this ticket touch in the code," an engineer had to spelunk across the codebase, Jira, Notion, and Figma by hand — and a new hire might burn days reconstructing context a senior engineer carried in their head. Worse, the AI coding assistants the team had started leaning on were confidently wrong, because they had no grounding in *our* code and invented plausible-looking answers. The people who felt it most were new engineers and anyone working across a team boundary, which in a multi-product org is most of them.
+
+The problem was that engineering context didn't scale with the team. Worth being precise about who felt it, because "we built a RAG system" is not a business case. "Every new engineer spent their first weeks reconstructing context by hand, and every cross-team question meant interrupting a senior engineer who was the only person who knew" is.
+
+## The architecture, briefly
+
+At a high level: code, tickets, docs, and designs are ingested through a queue-driven pipeline, chunked, and embedded with a code-specialized model into Postgres with pgvector for hot retrieval, while the relationships between them — who owns what, what calls what, which ticket touches which file — live in a Neo4j knowledge graph, with raw blobs in cold object storage. A query runs multi-prong hybrid retrieval (dense, lexical, symbol-name, file-path), fuses the results, and a re-ranking pass tightens precision before anything reaches the model. A natural-language-to-graph step expands the answer with relationships the vector search alone would miss. Generation runs on Claude with forced citation, so every answer points back at a real file and line, and returns an explicit list of what it *couldn't* find. The guardrails are the parts that made it shippable rather than just demo-able: strict multi-tenant scope isolation that fails closed, audit logging of every retrieval, and an eval set wired to a CI threshold. It's served two ways — as an MCP endpoint that AI assistants plug into, and as a search surface in a dashboard. <mark>The architecture is worth one clean paragraph and not one word more</mark> — the reader cares that it was sound, not that it was clever.
+
+<SystemArchitecture />
+
+## The hardest decision
+
+The hardest call was making retrieval fail *closed* on the tenant boundary, knowing it would cost recall. In a multi-product deployment, an agent scoped to one product must never reach another's code — so a scoped agent whose allow-list is empty gets nothing, not a "best effort" broad search. The decision that hurt was accepting that this would sometimes return fewer results, or none, where a looser system would have surfaced something helpful.
+
+What made it hard was that the right call traded against something visible. Fewer results looks worse on a usage chart, and there was constant, reasonable pressure to widen the scope "just a little" to recover the recall — which is precisely the bug that would reintroduce a cross-tenant leak. The decision looked wrong on the engagement metric and right on the one that actually mattered: trust. The first time the system had leaked one product's code to another product's agent, adoption would have died on the spot, and no recall number would have bought it back. Defending the call meant being clear that <mark>an assistant people *trust* gets used, and an assistant that has ever leaked does not.</mark> That's the kind of call that doesn't show up in the architecture diagram but determines whether the thing works in the real sense — the sense where people keep using it.
+
+<Callout type="dont" title="Don't widen the scope to recover the recall number">
+When a security boundary costs you recall, the visible metric (engagement, results-per-query) will
+pressure you to loosen it "just a little." That loosening *is* the cross-tenant leak. Fix the
+recall by getting the right repositories into scope — never by letting the wrong ones in. Trust is
+the metric that doesn't show on the usage chart and decides everything.
+</Callout>
+
+## The result
+
+The result that mattered was a collapse in the time it takes to answer a "where is this / how does this flow / what does this touch" question. What used to mean manual spelunking across the codebase, Jira, Notion, and Figma — minutes of context-switching, or an interrupt to the one senior engineer who happened to know — became a single query answered in seconds. The same shift showed up in onboarding: new engineers stopped spending their first weeks reconstructing context by hand and reached their first meaningful contribution noticeably sooner, because the knowledge that used to live in one person's head was now something they could just ask. The context that used to cost a day to reconstruct is now a query.
+
+The framing that landed: not "the system achieves 89% retrieval success on the eval set" — that's an engineering metric and the people who funded this don't speak it — but "the work that used to interrupt a senior engineer every time now doesn't, and new hires are productive in days instead of weeks." <mark>Translate the technical win into the language of the person who approved the budget, every time.</mark>
+
+<Callout type="do" title="Report the outcome, not the metric">
+"89% retrieval success on the eval set" is the proof; it is not the pitch. Lead with what changed
+for a person who pays the bills — *"cross-team questions stopped interrupting senior engineers, and
+new hires ship in days instead of weeks"* — and keep the engineering number underneath it as the
+evidence. The number earns the next project; the translation is what gets it heard.
+</Callout>
+
+## What I'd do differently
+
+I'd have built the eval set and the stage-attribution tracing *before* shipping, not after the first confidently-wrong answer made me wish I had. For the first stretch, "is it good?" was answered by spot-checking, and a regression slipped through that a measured bar would have caught — <u>I was flying on vibes on exactly the thing I was asking other people to trust.</u>
+
+The reason I'd change it: you cannot improve, or even safely defend, a system you can't measure — and retrofitting evaluation onto a tool people already rely on means every fix lands without proof it helped. Including this isn't false modesty — it's the part that signals to a senior reader that I shipped something real, learned from it, and would build the next one better. A case study with no regret reads like marketing. The one wrong turn is what makes the rest believable.
+
+## The takeaway
+
+A GenAI project succeeds or fails on whether you can name the business metric it moved and prove you moved it. The architecture has to be sound, but soundness is the price of entry, not the win. Build the thing well, then translate what it did into the language of the person who paid for it — because the number is what earns the next project, and the next project is how you get to build anything at all.

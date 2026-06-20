@@ -1,0 +1,58 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="The run isn't one open-ended loop — it's a state machine. Only research, implement, and fix loop (and only inside the turn cap); the model never decides what phase comes next. An explicit human approval gate sits between plan and implement, before anything irreversible."
+>
+  <svg viewBox="0 0 760 210" role="img" aria-label="A state machine with phases: research, plan, then a human approval gate that stops the run, then implement, visual QA, and fix. Research, implement, and fix are bounded loops capped at fifty model turns. The agent cannot reach implement without human approval.">
+    <defs>
+      <marker id="asm-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--color-faint)"></path>
+      </marker>
+    </defs>
+
+    <text x="20" y="16" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">looping phases bounded at ≤ 50 model turns · 3-min cap per external call</text>
+
+    <!-- Research (loop) -->
+    <rect x="14" y="40" width="118" height="54" rx="10" fill="color-mix(in oklab, var(--color-accent) 7%, var(--color-surface))" stroke="var(--color-accent)"></rect>
+    <text x="73" y="63" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Research</text>
+    <text x="73" y="80" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">bounded loop</text>
+
+    <!-- Plan -->
+    <rect x="160" y="40" width="110" height="54" rx="10" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="215" y="71" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Plan</text>
+
+    <!-- Approval gate -->
+    <rect x="298" y="36" width="150" height="62" rx="10" fill="color-mix(in oklab, #C9821B 9%, var(--color-surface))" stroke="#C9821B"></rect>
+    <text x="373" y="60" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="700" fill="var(--color-ink)">⏸ Human gate</text>
+    <text x="373" y="77" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">run STOPS here</text>
+    <text x="373" y="89" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">until "approve"</text>
+
+    <!-- Implement (loop) -->
+    <rect x="476" y="40" width="118" height="54" rx="10" fill="color-mix(in oklab, var(--color-accent) 7%, var(--color-surface))" stroke="var(--color-accent)"></rect>
+    <text x="535" y="63" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Implement</text>
+    <text x="535" y="80" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">bounded loop</text>
+
+    <!-- Visual QA -->
+    <rect x="622" y="40" width="122" height="54" rx="10" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="683" y="71" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Visual QA</text>
+
+    <!-- top arrows -->
+    <line x1="132" y1="67" x2="158" y2="67" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#asm-arrow)"></line>
+    <line x1="270" y1="67" x2="296" y2="67" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#asm-arrow)"></line>
+    <line x1="448" y1="67" x2="474" y2="67" stroke="#C9821B" stroke-width="1.8" marker-end="url(#asm-arrow)"></line>
+    <line x1="594" y1="67" x2="620" y2="67" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#asm-arrow)"></line>
+
+    <!-- Fix (loop) -->
+    <rect x="476" y="138" width="118" height="50" rx="10" fill="color-mix(in oklab, var(--color-accent) 7%, var(--color-surface))" stroke="var(--color-accent)"></rect>
+    <text x="535" y="160" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Fix</text>
+    <text x="535" y="176" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">bounded loop</text>
+
+    <!-- QA -> Fix -->
+    <path d="M683,94 L683,163 L596,163" fill="none" stroke="var(--color-faint)" stroke-width="1.4" marker-end="url(#asm-arrow)"></path>
+    <!-- Fix -> Implement (re-loop) -->
+    <path d="M476,150 L430,150 L430,108" fill="none" stroke="var(--color-faint)" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#asm-arrow)"></path>
+    <text x="360" y="154" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">never opens a PR on its own — diff for human review</text>
+  </svg>
+</Diagram>

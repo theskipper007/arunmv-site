@@ -4,6 +4,8 @@ import { render } from "astro:content";
 import ArticleLayout from "../../layouts/ArticleLayout.astro";
 import Callout from "../../components/mdx/Callout.astro";
 import Figure from "../../components/mdx/Figure.astro";
+import Diagram from "../../components/mdx/Diagram.astro";
+import Tldr from "../../components/mdx/Tldr.astro";
 import {
   getPublishedPosts,
   relatedPosts,
@@ -30,5 +32,5 @@ const series = post.data.series
 ---
 
 <ArticleLayout post={post} headings={headings} related={related} series={series}>
-  <Content components={{ Callout, Figure }} />
+  <Content components={{ Callout, Figure, Diagram, Tldr }} />
 </ArticleLayout>

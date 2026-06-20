@@ -1,0 +1,53 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="Two questions settle it before cost enters the conversation: is the gap knowledge or behavior, and how often does the answer change?"
+>
+  <svg viewBox="0 0 760 250" role="img" aria-label="A decision tree: if the gap is behavior, fine-tune or few-shot; if it's knowledge, ask whether it changes often or is too big to fit — yes means RAG, no means long context.">
+    <defs>
+      <marker id="rdt-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--color-faint)"></path>
+      </marker>
+    </defs>
+
+    <!-- Q1 -->
+    <rect x="14" y="92" width="160" height="60" rx="10" fill="color-mix(in oklab, var(--color-accent) 7%, var(--color-paper))" stroke="var(--color-accent)"></rect>
+    <text x="94" y="116" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Is the gap</text>
+    <text x="94" y="134" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">knowledge or behavior?</text>
+
+    <!-- Behavior outcome -->
+    <rect x="540" y="16" width="206" height="60" rx="10" fill="color-mix(in oklab, #3B6EA5 8%, var(--color-surface))" stroke="#3B6EA5"></rect>
+    <text x="643" y="40" text-anchor="middle" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">Fine-tune / few-shot</text>
+    <text x="643" y="58" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">behavior · format · valid syntax</text>
+
+    <!-- Q2 -->
+    <rect x="250" y="150" width="214" height="60" rx="10" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="357" y="174" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Changes often, or</text>
+    <text x="357" y="192" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">too big to fit a window?</text>
+
+    <!-- RAG -->
+    <rect x="560" y="120" width="120" height="50" rx="10" fill="color-mix(in oklab, #2E8B57 9%, var(--color-surface))" stroke="#2E8B57"></rect>
+    <text x="620" y="150" text-anchor="middle" font-family="var(--font-sans)" font-size="15" font-weight="700" fill="var(--color-ink)">RAG</text>
+
+    <!-- Long context -->
+    <rect x="540" y="186" width="206" height="52" rx="10" fill="var(--color-surface)" stroke="var(--color-border)"></rect>
+    <text x="643" y="208" text-anchor="middle" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">Long context</text>
+    <text x="643" y="225" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">small · self-contained · in hand</text>
+
+    <!-- Edges -->
+    <g fill="none" stroke="var(--color-faint)" stroke-width="1.4">
+      <path d="M174,108 C360,86 360,46 538,46" marker-end="url(#rdt-arrow)"></path>
+      <path d="M150,152 C150,180 200,180 248,180" marker-end="url(#rdt-arrow)"></path>
+      <path d="M464,168 C500,160 510,148 558,146" marker-end="url(#rdt-arrow)"></path>
+      <path d="M464,192 C500,200 510,210 538,210" marker-end="url(#rdt-arrow)"></path>
+    </g>
+
+    <!-- Edge labels -->
+    <text x="330" y="74" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--color-accent)">behavior</text>
+    <text x="196" y="172" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--color-accent)">knowledge</text>
+    <text x="512" y="140" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-muted)">yes</text>
+    <text x="512" y="224" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-muted)">no</text>
+  </svg>
+</Diagram>

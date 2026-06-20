@@ -10,6 +10,10 @@ interface Props {
   alt?: string;
   /** CSS aspect-ratio value, e.g. "16 / 9". */
   ratio?: string;
+  /** object-position for the cover media when cropped (e.g. "left" for title-left covers). */
+  position?: string;
+  /** object-fit for the cover media: "cover" (default) or "contain" to show the whole image. */
+  fit?: string;
   /** Show the topic label over the animated fallback. */
   label?: boolean;
   class?: string;
@@ -21,12 +25,14 @@ const {
   video,
   alt = "",
   ratio = "16 / 9",
+  position = "center",
+  fit = "cover",
   label = true,
   class: className = "",
 } = Astro.props;
 
 const t = CATEGORY_THEME[category];
-const style = `--c1:${t.c1};--c2:${t.c2};--c3:${t.c3};aspect-ratio:${ratio};`;
+const style = `--c1:${t.c1};--c2:${t.c2};--c3:${t.c3};aspect-ratio:${ratio};--cover-pos:${position};--cover-fit:${fit};`;
 const kind = video ? "video" : image ? "image" : "motion";
 ---
 

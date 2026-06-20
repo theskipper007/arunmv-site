@@ -11,31 +11,33 @@ const { title, description, pubDate, category, heroImage, heroVideo } = post.dat
 const minutes = readingMinutes(post);
 ---
 
-<a
-  href={`/blog/${post.id}`}
-  class="reveal group grid items-stretch gap-6 overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface no-underline transition-colors hover:border-accent/40 md:grid-cols-2"
+<article
+  class="reveal group relative flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface transition-colors hover:border-accent/40"
 >
   <CoverArt
     category={category}
     image={heroImage}
     video={heroVideo}
     alt={title}
-    ratio="16 / 10"
-    class="h-full"
+    ratio="68 / 37"
+    class="cover-art--flush"
   />
-  <div class="flex flex-col justify-center p-8 sm:p-10">
+  <div class="flex flex-1 flex-col justify-center p-8 sm:p-10">
     <div class="flex items-center gap-3">
-      <CategoryPill category={category} size="sm" />
+      <CategoryPill category={category} size="sm" class="relative z-10" />
       <span class="font-mono text-xs text-faint">Featured</span>
     </div>
-    <h2
-      class="mt-4 text-3xl font-bold tracking-tight text-ink transition-colors group-hover:text-accent sm:text-4xl"
-    >
-      {title}
+    <h2 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+      <a
+        href={`/blog/${post.id}`}
+        class="text-ink no-underline transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-accent"
+      >
+        {title}
+      </a>
     </h2>
     <p class="mt-3 text-lg text-muted">{description}</p>
     <p class="mt-5 font-mono text-xs text-faint">
       <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time> · {minutes} min read
     </p>
   </div>
-</a>
+</article>

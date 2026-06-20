@@ -1,10 +1,11 @@
 ---
 title: "Why knowledge graphs beat vector-only RAG"
-description: "Vector-only RAG returns flat, context-poor chunks. Modeling entities and relationships lets you traverse why things connect."
+description: "Vector-only RAG returns flat, context-poor chunks ranked by similarity. Knowledge graphs model entities and relationships to traverse why things connect."
 pubDate: 2026-05-02
 category: ai-engineering
 audience: technical
 tags: ["rag", "knowledge-graphs", "neo4j", "llm"]
+heroImage: ../../assets/blog/knowledge-graphs-vs-rag.svg
 series:
   name: "Knowledge graphs for LLMs"
   order: 1
@@ -12,18 +13,24 @@ featured: true
 draft: false
 ---
 
-> **TL;DR.** Vector-only RAG returns flat, context-poor chunks ranked purely by similarity.
-> Modeling entities and relationships in a graph lets you traverse *why* things connect — which
-> grounds LLM answers in structure, not just nearness. This post sets up the series.
+import VectorVsGraph from "../../components/diagrams/VectorVsGraph.astro";
+
+<Tldr>
+
+Vector-only RAG returns flat, context-poor chunks ranked purely by similarity. Modeling entities and relationships in a graph lets you traverse *why* things connect — which grounds LLM answers in **structure, not just nearness**. This post sets up the series.
+
+</Tldr>
 
 Retrieval-augmented generation usually starts the same way: chunk your documents, embed the
-chunks, and at query time pull back the top-k nearest neighbours. It works, until it doesn't.
+chunks, and at query time pull back the top-k nearest neighbours. <mark>It works, until it doesn't.</mark>
 
 ## Where similarity runs out
 
 Embeddings are great at "find me text that looks like this." They are poor at "find me the thing
-that *caused* this," or "walk from this entity to everything it depends on." Those are
-relationship questions, and relationships are exactly what a flat vector index throws away.
+that *caused* this," or "walk from this entity to everything it depends on." <mark>Those are
+relationship questions, and relationships are exactly what a flat vector index throws away.</mark>
+
+<VectorVsGraph />
 
 <Callout type="note" title="The failure mode">
 When a user asks a multi-hop question, similarity search returns several chunks that each look
@@ -53,3 +60,10 @@ neighbourhood with explicit relationships.
 
 We'll build this up across the series — modeling entities in Neo4j, adding episodic time-aware
 memory with Graphiti, and tuning hybrid retrieval so it stays fast and cost-aware.
+
+<Callout type="reference" title="Where this comes from">
+
+- Edge et al., [*From Local to Global: A Graph RAG Approach to Query-Focused Summarization*](https://arxiv.org/abs/2404.16130) (2024) — Microsoft's GraphRAG, traversal over a structured knowledge graph.
+- [Neo4j](https://neo4j.com/developer/graph-database/) — the property-graph model behind the next post in this series.
+
+</Callout>

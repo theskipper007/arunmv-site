@@ -1,0 +1,44 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="Three levers take per-query cost from 100% to roughly 60% — context trimming does the most, then model routing, then prompt caching. The quality gate (NDCG@10 ≥ 0.75) held the whole way."
+>
+  <svg viewBox="0 0 760 196" role="img" aria-label="A waterfall chart: 100% baseline cost falls by about 20% from context trimming, about 12% from model routing, and about 8% from prompt caching, landing near 60% — with quality held throughout.">
+    <text x="20" y="16" font-family="var(--font-mono)" font-size="10" fill="var(--color-faint)">quality (NDCG@10) held ≥ 0.75 throughout</text>
+
+    <!-- baseline axis -->
+    <line x1="20" y1="150" x2="740" y2="150" stroke="var(--color-border)" stroke-width="1"></line>
+
+    <!-- Baseline 100% -->
+    <rect x="40" y="22" width="92" height="128" rx="3" fill="color-mix(in oklab, var(--color-ink) 18%, var(--color-surface))" stroke="var(--color-border)"></rect>
+    <text x="86" y="48" text-anchor="middle" font-family="var(--font-sans)" font-size="14" font-weight="700" fill="var(--color-ink)">100%</text>
+    <text x="86" y="166" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-muted)">baseline</text>
+
+    <!-- -20% context -->
+    <rect x="190" y="22" width="92" height="26" rx="3" fill="var(--color-accent)"></rect>
+    <text x="236" y="166" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-muted)">−20% context</text>
+
+    <!-- -12% routing -->
+    <rect x="340" y="48" width="92" height="16" rx="3" fill="color-mix(in oklab, var(--color-accent) 78%, var(--color-surface))"></rect>
+    <text x="386" y="166" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-muted)">−12% routing</text>
+
+    <!-- -8% caching -->
+    <rect x="490" y="64" width="92" height="10" rx="3" fill="color-mix(in oklab, var(--color-accent) 58%, var(--color-surface))"></rect>
+    <text x="536" y="166" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-muted)">−8% caching</text>
+
+    <!-- Final ~60% -->
+    <rect x="640" y="74" width="92" height="76" rx="3" fill="color-mix(in oklab, #2E8B57 72%, var(--color-surface))" stroke="#2E8B57"></rect>
+    <text x="686" y="98" text-anchor="middle" font-family="var(--font-sans)" font-size="14" font-weight="700" fill="var(--color-ink)">~60%</text>
+    <text x="686" y="166" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-muted)">served cost</text>
+
+    <!-- connectors -->
+    <g stroke="var(--color-faint)" stroke-width="1" stroke-dasharray="3 3">
+      <line x1="132" y1="22" x2="190" y2="22"></line>
+      <line x1="282" y1="48" x2="340" y2="48"></line>
+      <line x1="432" y1="64" x2="490" y2="64"></line>
+      <line x1="582" y1="74" x2="640" y2="74"></line>
+    </g>
+  </svg>
+</Diagram>

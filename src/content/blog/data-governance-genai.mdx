@@ -1,0 +1,72 @@
+---
+title: "Data Governance for GenAI in Regulated Industries"
+description: "In regulated, multi-tenant GenAI, governance isn't a constraint on the build — it's what decides whether you can ship. Design it into the first diagram."
+pubDate: 2026-06-12
+category: ai-engineering
+audience: technical
+tags: ["data-governance", "security", "multi-tenant", "compliance", "rag"]
+heroImage: ../../assets/blog/data-governance-genai.svg
+featured: false
+draft: false
+---
+
+import ScopedRetrieval from "../../components/diagrams/ScopedRetrieval.astro";
+
+<Tldr>
+
+In a regulated or multi-tenant GenAI system, data governance isn't a constraint on the build — it's **part of the system**, and the part that decides whether you're allowed to ship. Build minimization, scoped fail-closed retrieval, and audit logging into the first architecture, because a pipeline that wasn't designed to handle data carefully can't be retrofitted to.
+
+</Tldr>
+
+Most GenAI architecture diagrams have a clean arrow from "user data" to "model." In a regulated industry, that arrow is where the project lives or dies, and it's usually the part nobody drew carefully. The interesting engineering isn't the model. It's everything you have to build around that arrow so the data is allowed to travel it at all.
+
+The constraint that reframed my project wasn't a privacy regulator — it was the simpler, harder fact that the corpus belonged to several different tenants who must never see each other's data. The system serves multiple isolated products out of one deployment, and the "sensitive data" is each product's proprietary source code, tickets, and designs. <mark>The moment an AI assistant for one product can retrieve another product's code, you don't have a feature, you have a breach.</mark> That single requirement — strict isolation, provable, with no fail-open path — turned out to push toward exactly the same controls a data-protection regime would demand.
+
+The constraint I had to design around was that an agent scoped to one product could *never*, under any failure mode, reach another product's repositories. This isn't a feature you bolt on at the end. It's a property the system either has from the first diagram or never has at all, because retrofitting governance onto a pipeline that already leaks is mostly a rewrite — and I know that because the first version leaked.
+
+## The controls I built
+
+The first was minimizing and sanitizing what reaches a model in the first place. Retrieval is token-budgeted: the system assembles the smallest slice of context that answers the question — a global budget with per-slot caps and content-hash deduplication — rather than dumping everything it found into the prompt. The principle is that the model should never see what it doesn't need to see, and data that never enters the prompt can't leak from it. The same instinct governs the audit path: before any request or response is persisted for logging, a fixed set of sensitive keys — tokens, secrets, passwords, API keys, anything that looks like a credential — is redacted by code I control, not trusted to a model I don't.
+
+The second, and the one that actually defines the system, was access control on retrieval itself. Every agent carries a resolved scope — the exact set of repositories and teams it's allowed to see — derived from its API key, not from anything the model says at query time. That scope is compiled into the SQL: a retrieval query for a scoped agent gets an explicit `repo = ANY(...)` predicate, and the vector search and the relational filter run as *one* query against the same database. A vector store is a retrieval surface, and an unscoped one will happily return a chunk to someone who should never have seen the source document. Permissions have to be enforced at retrieval time, against the requesting agent — the embedding doesn't carry the access rules, the query layer has to.
+
+<ScopedRetrieval />
+
+<Callout type="do" title="Resolve scope from the credential, compile it into the query">
+Derive the allow-list from the agent's API key, not from a parameter the model passes at query time. Compile it into the same statement as the vector search (`repo = ANY(scope)`) so the permission boundary and the similarity search are one query the planner enforces together — never two systems you hope stay in sync.
+</Callout>
+
+The detail that matters most here is the failure mode. The scope resolves *fail-closed*: an agent bound to a product that owns zero repositories doesn't get a broad search, it gets an empty allow-list that renders as `ARRAY[]::text[]` and matches nothing. <u>Fail-open is the natural default of almost every query you'll write; fail-closed is something you choose on purpose.</u> I learned to value that the hard way.
+
+<Callout type="danger" title="The leak: a tool that trusted the model's scope argument">
+An early version had a handful of tools that filtered only on a parameter *the model supplied*. A scoped agent asked one of them for another product's API contract — and got it back, because the tool trusted the model's argument and never intersected it with the agent's own repos. Never let the model name the scope it's allowed to read. The fix was a regression suite asserting each tool issues *no query at all* for out-of-scope data, plus a static audit that every scoped tool emits its scope clause.
+</Callout>
+
+The third was audit trails. Every tool call is logged — the tool, the (redacted) request and response, latency, errors, the calling identity, and a trace id — to an append-only log with a fixed retention window. In a regulated setting "we think the system behaved correctly" isn't an answer; you need to be able to show exactly what data was accessed, by whom, and when. That logging is also what makes retention and deletion real: when a deletion request comes in, you have to be able to find and remove the data and prove you did, which is impossible if you never tracked where it went.
+
+These map onto the actual regimes a multi-region product operates under — Singapore's PDPA and the UAE and DIFC data protection rules — at a practitioner's level. The shared spine across them is recognizable once you've built to it: lawful, minimal handling of data, real retention and deletion obligations, and accountability you can demonstrate rather than assert. The specifics differ and the lawyers own the specifics, but the engineering posture they push you toward is consistent — minimize what you collect, control who can reach it, and keep a record you can stand behind. Building strict tenant isolation turned out to be the same work, aimed at a different threat.
+
+## The tradeoff it forced
+
+None of this is free, and pretending otherwise is how you lose the trust of the senior readers who've felt the cost. Fail-closed scoping narrows the candidate pool before retrieval even runs, and a narrower pool means lower recall — a scoped agent will sometimes return nothing where an unscoped one would have found a "helpful" chunk. Early on that looked like a regression, and the temptation was to widen the scope "just a little" to recover the recall. That temptation is exactly the bug. The work was reworking the access model so the right repositories were in scope, not loosening the boundary so the wrong ones leaked in.
+
+The honest version: stricter governance and maximum answer quality pull against each other, and the work is finding the configuration that satisfies the constraint while giving up the least quality — not pretending the tension doesn't exist.
+
+## The outcome
+
+The payoff was that isolation stopped being a thing we hoped held and became a thing we could prove. The leak that started all of this is now a test that fails the build if anyone reintroduces it; the audit log answers "what did this agent actually see" without a debugging session; and a use case that had been blocked — letting product teams point AI assistants at the shared platform — became possible specifically because we could show the boundary held. The framing that landed with stakeholders: governance wasn't the tax that slowed the project down. It was the thing that let the project exist at all.
+
+## The takeaway
+
+In a regulated industry — or any multi-tenant system holding data that isn't all yours to share — data governance isn't a constraint on the GenAI system. It's part of the system, and the part that determines whether you're allowed to ship. Build minimization, scoped fail-closed retrieval, and audit logging into the first architecture, because a pipeline that wasn't designed to handle data carefully can't be made to after the fact. <mark>The model is the easy part. The arrow into it is the job.</mark>
+
+<Callout type="reference" title="Worth reading on this">
+
+- [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/) — LLM06 (sensitive information disclosure) and LLM08 (excessive agency) are exactly the failure modes scoped, fail-closed retrieval is built to prevent.
+- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework) — a vendor-neutral way to talk about governance posture with stakeholders who own the regulatory specifics.
+
+</Callout>
+
+---
+
+*This is engineering experience, not legal advice. Treat the regulatory specifics as a practitioner's working understanding and confirm anything that matters with qualified counsel.*

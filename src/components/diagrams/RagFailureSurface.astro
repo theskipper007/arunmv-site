@@ -1,0 +1,65 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="The failure I kept hitting was upstream of the model — in retrieval, not generation. Tracing every stage is what made the real fault visible."
+>
+  <svg viewBox="0 0 760 232" role="img" aria-label="RAG production pipeline — query flows through retrieve, re-rank and generate to an answer, with a tracing layer spanning every stage; most failures originate at retrieval.">
+    <defs>
+      <marker id="rfs-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--color-faint)"></path>
+      </marker>
+    </defs>
+
+    <!-- "most failures" badge over the Retrieve stage -->
+    <text x="230" y="20" text-anchor="middle" font-family="var(--font-mono)" font-size="10" font-weight="600" fill="var(--color-accent)">most failures originate here</text>
+    <path d="M230,25 L230,36" stroke="var(--color-accent)" stroke-width="1.5" marker-end="url(#rfs-arrow)"></path>
+
+    <!-- Stage: Query -->
+    <rect x="20" y="40" width="120" height="64" rx="10" fill="var(--color-paper)" stroke="var(--color-border)" stroke-width="1"></rect>
+    <text x="80" y="68" text-anchor="middle" font-family="var(--font-sans)" font-size="15" font-weight="600" fill="var(--color-ink)">Query</text>
+    <text x="80" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">what users type</text>
+
+    <!-- Stage: Retrieve (failure surface — accent) -->
+    <rect x="170" y="40" width="120" height="64" rx="10" fill="color-mix(in oklab, var(--color-accent) 7%, var(--color-paper))" stroke="var(--color-accent)" stroke-width="2"></rect>
+    <text x="230" y="68" text-anchor="middle" font-family="var(--font-sans)" font-size="15" font-weight="600" fill="var(--color-ink)">Retrieve</text>
+    <text x="230" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">vector + lexical</text>
+
+    <!-- Stage: Re-rank -->
+    <rect x="320" y="40" width="120" height="64" rx="10" fill="var(--color-paper)" stroke="var(--color-border)" stroke-width="1"></rect>
+    <text x="380" y="68" text-anchor="middle" font-family="var(--font-sans)" font-size="15" font-weight="600" fill="var(--color-ink)">Re-rank</text>
+    <text x="380" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">top-k survives</text>
+
+    <!-- Stage: Generate -->
+    <rect x="470" y="40" width="120" height="64" rx="10" fill="var(--color-paper)" stroke="var(--color-border)" stroke-width="1"></rect>
+    <text x="530" y="68" text-anchor="middle" font-family="var(--font-sans)" font-size="15" font-weight="600" fill="var(--color-ink)">Generate</text>
+    <text x="530" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">LLM synthesis</text>
+
+    <!-- Stage: Answer -->
+    <rect x="620" y="40" width="120" height="64" rx="10" fill="var(--color-paper)" stroke="var(--color-border)" stroke-width="1"></rect>
+    <text x="680" y="68" text-anchor="middle" font-family="var(--font-sans)" font-size="15" font-weight="600" fill="var(--color-ink)">Answer</text>
+    <text x="680" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">cited · or abstain</text>
+
+    <!-- Flow arrows -->
+    <line x1="142" y1="72" x2="167" y2="72" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#rfs-arrow)"></line>
+    <line x1="292" y1="72" x2="317" y2="72" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#rfs-arrow)"></line>
+    <line x1="442" y1="72" x2="467" y2="72" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#rfs-arrow)"></line>
+    <line x1="592" y1="72" x2="617" y2="72" stroke="var(--color-faint)" stroke-width="1.5" marker-end="url(#rfs-arrow)"></line>
+
+    <!-- Dashed taps from each stage down to the tracing bar -->
+    <g stroke="var(--color-border)" stroke-width="1" stroke-dasharray="3 3">
+      <line x1="80" y1="104" x2="80" y2="168"></line>
+      <line x1="230" y1="104" x2="230" y2="168"></line>
+      <line x1="380" y1="104" x2="380" y2="168"></line>
+      <line x1="530" y1="104" x2="530" y2="168"></line>
+      <line x1="680" y1="104" x2="680" y2="168"></line>
+    </g>
+
+    <!-- Tracing / observability bar spanning every stage -->
+    <rect x="20" y="168" width="720" height="46" rx="10" fill="var(--color-surface)" stroke="var(--color-border)" stroke-width="1"></rect>
+    <rect x="20" y="168" width="4" height="46" rx="2" fill="var(--color-accent)"></rect>
+    <text x="380" y="190" text-anchor="middle" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="var(--color-ink)">Tracing — one trace per query, every stage</text>
+    <text x="380" y="206" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-faint)">query · resolved entities · retrieval scores · surviving context · model output</text>
+  </svg>
+</Diagram>

@@ -1,0 +1,42 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Cutting LLM inference cost without losing quality</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="540" cy="180" rx="200" ry="175" fill="url(#glow)"/>
+
+  <!-- descending cost bars under a held quality floor -->
+  <line x1="432" y1="282" x2="652" y2="282" stroke="#2a3038" stroke-width="1"/>
+  <g>
+    <rect x="446" y="150" width="26" height="132" rx="2" fill="#26303a" stroke="#3a4a52" stroke-width="1"/>
+    <rect x="486" y="186" width="26" height="96" rx="2" fill="#22343c" stroke="#3a4a52" stroke-width="1"/>
+    <rect x="526" y="216" width="26" height="66" rx="2" fill="#1d343b" stroke="#22D3EE" stroke-width="1.1"/>
+    <rect x="566" y="234" width="26" height="48" rx="2" fill="#163138" stroke="#22D3EE" stroke-width="1.2"/>
+    <rect x="566" y="234" width="26" height="48" rx="2" fill="#22D3EE" opacity="0.18"/>
+  </g>
+  <!-- quality floor stays flat -->
+  <line x1="440" y1="132" x2="648" y2="132" stroke="#8B5CF6" stroke-width="1.6" stroke-dasharray="6 5" opacity="0.85"/>
+  <text x="440" y="124" font-family="Inter, sans-serif" font-size="9" font-weight="700" letter-spacing="0.12em" fill="#8B5CF6" opacity="0.8">QUALITY FLOOR</text>
+  <!-- down arrow -->
+  <path d="M620 156 v92 M620 248 l-7 -9 m7 9 l7 -9" fill="none" stroke="#22D3EE" stroke-width="1.6" opacity="0.7" stroke-linecap="round"/>
+
+  <!-- text -->
+  <text x="56" y="106" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#22D3EE">INFERENCE · COST</text>
+  <text x="55" y="162" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Cutting Inference</text>
+  <text x="55" y="204" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Cost ~40%</text>
+  <text x="55" y="242" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="700" letter-spacing="-0.01em" fill="#22D3EE">Without Losing Quality</text>
+  <line x1="56" y1="262" x2="200" y2="262" stroke="#22D3EE" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="312" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">Fix the metric first · trim context · route models · cache the prefix</text>
+</svg>

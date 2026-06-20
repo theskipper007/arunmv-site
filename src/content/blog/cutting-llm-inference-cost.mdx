@@ -1,0 +1,71 @@
+---
+title: "Cutting LLM Inference Cost ~40% Without Losing Quality"
+description: "Inference cost optimization is a measurement problem in disguise. Fix the quality metric first, then trim context, route models, and cache the stable prefix."
+pubDate: 2026-03-18
+category: ai-engineering
+audience: technical
+tags: ["llmops", "cost", "rag", "evaluation", "caching"]
+heroImage: ../../assets/blog/cutting-llm-inference-cost.svg
+featured: false
+draft: false
+---
+
+import CostWaterfall from "../../components/diagrams/CostWaterfall.astro";
+
+<Tldr>
+
+Inference cost isn't really an optimization problem — it's a **measurement problem in an optimization costume**. Lock a quality baseline in CI first, then take your savings from three levers: send the model less context, route cheap steps to a cheap model, and cache the stable prefix. The flat-quality half of "we cut cost ~40%" is the half that makes it true.
+
+</Tldr>
+
+The bill is the part nobody demos. You ship the feature, everyone's pleased, and then the first full month of usage lands and the inference line on the cloud invoice is large enough that someone in finance learns your name. That's a good problem — it means people are using the thing — but it's a problem with a deadline.
+
+For me it was a projection, not a single invoice. Usage was climbing the way you want it to, and when I drew the inference cost forward along that curve, the line went somewhere nobody had budgeted for. Every query fanned out into several model calls — an intent step, a query-generation step, a synthesis step over a pile of retrieved context — so the cost per question was several times what the synthesis call alone suggested, and it scaled linearly with adoption. The feature was succeeding its way into a cost problem.
+
+At the time each answered question cost more than it looked like, because it wasn't one model call — it was a small pipeline of them, and the synthesis call carried a large retrieved-context payload on every request. The starting point was a per-question cost dominated by input tokens, multiplied across a request volume that was doubling on a quarterly cadence; that product, not any single call, was the line on the invoice. The naive options were both bad: cap usage and slow down adoption, or eat the cost and watch margin disappear as traffic grew. Neither is a real answer. The real answer is to serve the same quality for less, and <mark>the only honest way to claim that is to define "same quality" before you start cutting</mark> — otherwise you're just trading accuracy for money and calling it optimization.
+
+## Measuring quality first, so the savings are real
+
+Before touching cost, I locked down a quality baseline: the eval set I already ran in CI, scored on NDCG@10 against hand-labeled ground truth, plus the stage-attribution breakdown that shows *where* any regression lands. The rule was simple: any cost change had to hold NDCG above its 0.75 bar and not shift the stage-attribution mix, or it didn't ship. Without that gate, "we cut cost 40%" is meaningless, because the easiest way to cut inference cost is to make the output worse and hope nobody measures it.
+
+That baseline is what made the rest defensible. Every lever below was evaluated against it, not against my intuition that the answers "still looked fine."
+
+<Callout type="do" title="Lock the quality floor before you cut a single token">
+The easiest way to cut inference cost is to make the output worse and hope nobody measures it. Gate every cost change on a fixed metric (here: NDCG@10 ≥ 0.75) *and* the stage-attribution mix, so "we saved 40%" comes with "and quality didn't move" attached — provable, not hoped.
+</Callout>
+
+## The levers, in order of impact
+
+I pulled three levers. Ranked by what they actually saved:
+
+The biggest was cutting what I sent the model in the first place. <mark>In a RAG system the input is the bill</mark> — the retrieved context dwarfs the question and the answer — so the highest-leverage cost work was assembling *less* context without losing the parts that mattered. I put a hard token budget on the bundle, with per-slot caps so no single source could crowd out the rest, and content-hash deduplication so the same chunk fetched two ways was never paid for twice. A large fraction of what I'd been stuffing into the prompt was redundant or low-value; trimming it to the smallest slice that still answered the question cut input tokens directly on every single call. The work here is mostly in the budget: too tight and you starve the model of context and quality drops; too loose and you're back to paying for noise. I tuned it against the quality set, not by eyeballing it.
+
+The second lever was model routing. Not every step needs your most expensive model — most don't. The cheap, fast model handles the steps where it's good enough: classifying intent, and generating the structured graph query from the question. The expensive model is reserved for the one step that actually rewards it — synthesizing the final grounded answer. The trick is that the routing has to be cheaper than the savings it produces, and which step runs on which tier has to be a measured decision, not a guess: I moved each step down to the cheap tier only after the quality gate confirmed it held. In the end the large majority of model calls run on the cheap tier, with the single expensive synthesis call reserved for the one step that pays for itself.
+
+The third lever was prompt caching on the stable prefix. A lot of every call is identical from request to request — the system instructions, the schema the model needs to generate a valid query, the fixed scaffolding — and re-sending it at full input price each time is pure waste. Caching that prefix so repeated calls pay the cache-read rate instead of the full input rate shaved a steady percentage off the bill for zero quality cost, because the cached bytes are byte-for-byte the same ones.
+
+<CostWaterfall />
+
+## The result, and the lever that wasn't worth it
+
+<Callout type="output" title="Net result">
+
+- **Serving cost down ~40%** across the three levers
+- **NDCG@10 held at or above 0.75** — quality floor never breached
+- **Stage-attribution mix unchanged** — no class of query quietly regressed
+
+</Callout>
+
+Together those changes cut serving cost by roughly 40%, with NDCG@10 held at or above its 0.75 bar and the stage-attribution mix unchanged. The flat-quality half of that sentence is the half that makes it credible. <mark>A cost number without a quality number is a story about cutting corners.</mark>
+
+Not everything earned its place. The tempting next move was to route the *synthesis* step to the cheap model too — that's where the biggest per-call cost lived, so the savings looked huge on paper. The quality gate killed it immediately: synthesis on the cheap tier dropped NDCG below the bar and the stage-attribution breakdown showed exactly which buckets degraded, so synthesis stayed on the expensive model and I took my savings from context and caching instead.
+
+<Callout type="dont" title="Don't route your highest-value step to the cheap model">
+The step with the biggest per-call cost — here, grounded synthesis — looks like the juiciest saving on paper. It's usually the one that pays for the expensive model. Move steps down a tier only *after* the quality gate confirms each one holds; let the metric, not the price tag, decide.
+</Callout>
+
+The reason I knew to back it out was the same reason any of this was trustworthy: the quality gate flagged the regression before it reached users. Without that gate I'd have shipped a cheaper, quietly worse system and never known.
+
+## The takeaway
+
+Inference cost optimization isn't really an optimization problem — it's a measurement problem wearing an optimization costume. The techniques are well known and most of them work. What separates a real 40% from a fake one is whether you fixed the quality metric in place before you started cutting, so that "the savings are real" is a thing you can prove rather than a thing you're hoping. Define the floor first. Then go find the waste.

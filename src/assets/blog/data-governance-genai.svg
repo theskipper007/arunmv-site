@@ -1,0 +1,41 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Data governance for GenAI in regulated industries</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="540" cy="180" rx="200" ry="175" fill="url(#glow)"/>
+
+  <!-- shield with tenant partitions + check -->
+  <g transform="translate(540,182)">
+    <path d="M0 -78 L62 -52 V6 C62 48 34 74 0 88 C-34 74 -62 48 -62 6 V-52 Z"
+          fill="#13172a" stroke="#6366F1" stroke-width="1.6"/>
+    <path d="M0 -78 L62 -52 V6 C62 48 34 74 0 88 C-34 74 -62 48 -62 6 V-52 Z"
+          fill="#6366F1" opacity="0.08"/>
+    <!-- multi-tenant partition lines -->
+    <line x1="-44" y1="-20" x2="44" y2="-20" stroke="#8B5CF6" stroke-width="1" opacity="0.4"/>
+    <line x1="0" y1="-72" x2="0" y2="80" stroke="#8B5CF6" stroke-width="1" opacity="0.4"/>
+    <!-- check -->
+    <path d="M-22 4 L-6 22 L26 -18" fill="none" stroke="#22D3EE" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <circle cx="540" cy="182" r="20" fill="#6366F1" opacity="0.22" filter="url(#blur)"/>
+
+  <!-- text -->
+  <text x="56" y="106" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#6366F1">GOVERNANCE · COMPLIANCE</text>
+  <text x="55" y="162" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Data Governance</text>
+  <text x="55" y="204" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">for GenAI in</text>
+  <text x="55" y="242" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="700" letter-spacing="-0.01em" fill="#8B5CF6">Regulated Industries</text>
+  <line x1="56" y1="262" x2="200" y2="262" stroke="#6366F1" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="312" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">Multi-tenant isolation · audit trails · design it into the first diagram</text>
+</svg>

@@ -1,0 +1,57 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>A weekend spent over-engineering my coffee</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F472B6" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#F472B6" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="540" cy="195" rx="195" ry="170" fill="url(#glow)"/>
+
+  <!-- spreadsheet / brew-ratio grid (the over-engineering) -->
+  <g stroke="#F472B6" stroke-width="0.8" opacity="0.22">
+    <rect x="430" y="96" width="120" height="84" fill="none"/>
+    <line x1="430" y1="124" x2="550" y2="124"/>
+    <line x1="430" y1="152" x2="550" y2="152"/>
+    <line x1="470" y1="96" x2="470" y2="180"/>
+    <line x1="510" y1="96" x2="510" y2="180"/>
+  </g>
+  <g fill="#F472B6" opacity="0.5">
+    <rect x="434" y="100" width="32" height="6" rx="1"/>
+    <rect x="474" y="128" width="32" height="6" rx="1"/>
+    <rect x="514" y="156" width="32" height="6" rx="1"/>
+  </g>
+
+  <!-- coffee cup -->
+  <g>
+    <!-- steam -->
+    <path d="M548 268 q -10 -16 0 -32 q 10 -16 0 -32" fill="none" stroke="#F472B6" stroke-width="1.4" opacity="0.4" stroke-linecap="round"/>
+    <path d="M576 268 q -10 -16 0 -32 q 10 -16 0 -32" fill="none" stroke="#F472B6" stroke-width="1.4" opacity="0.3" stroke-linecap="round"/>
+    <!-- glow -->
+    <ellipse cx="562" cy="300" rx="48" ry="20" fill="#F472B6" opacity="0.18" filter="url(#blur)"/>
+    <!-- cup body -->
+    <path d="M520 278 h84 l-9 44 a6 6 0 0 1 -6 5 h-54 a6 6 0 0 1 -6 -5 z"
+          fill="#15121a" stroke="#F472B6" stroke-width="1.6"/>
+    <!-- coffee surface -->
+    <ellipse cx="562" cy="280" rx="42" ry="7" fill="#F472B6" opacity="0.5"/>
+    <!-- handle -->
+    <path d="M606 286 q 24 4 18 26 q -5 16 -22 14" fill="none" stroke="#F472B6" stroke-width="1.6" opacity="0.8"/>
+  </g>
+
+  <!-- text -->
+  <text x="56" y="106" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#F472B6">TINKERING · COFFEE</text>
+  <text x="55" y="164" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">A Weekend Spent</text>
+  <text x="55" y="206" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Over-Engineering</text>
+  <text x="55" y="244" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="700" letter-spacing="-0.01em" fill="#F472B6">My Coffee</text>
+  <line x1="56" y1="264" x2="200" y2="264" stroke="#F472B6" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="314" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">Scales, ratios, spreadsheets — and the limits of optimization</text>
+</svg>

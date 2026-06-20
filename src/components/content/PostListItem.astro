@@ -1,0 +1,32 @@
+---
+import CategoryPill from "./CategoryPill.astro";
+import { formatDate, readingMinutes, type Post } from "../../lib/collections";
+
+interface Props {
+  post: Post;
+}
+const { post } = Astro.props;
+const { title, pubDate, category } = post.data;
+const minutes = readingMinutes(post);
+---
+
+<div class="group relative flex flex-col gap-2 py-4 first:pt-0 last:pb-0">
+  <h3 class="flex items-center gap-1.5 text-lg font-semibold tracking-tight">
+    <a
+      href={`/blog/${post.id}`}
+      class="text-ink no-underline transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-accent"
+    >
+      {title}
+    </a>
+    <span
+      class="inline-block text-accent opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
+      aria-hidden="true">→</span
+    >
+  </h3>
+  <div class="flex items-center gap-3">
+    <CategoryPill category={category} size="sm" class="relative z-10" />
+    <span class="font-mono text-xs text-faint">
+      <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time> · {minutes} min
+    </span>
+  </div>
+</div>

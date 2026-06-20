@@ -1,0 +1,48 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="A fact isn't just true or false — it's true over an interval. Appending episodes with validity intervals (instead of overwriting) lets the agent answer 'what is true now?' and 'what was true then?' from the same graph."
+>
+  <svg viewBox="0 0 760 192" role="img" aria-label="A timeline showing the fact 'primary database' changing over time: Postgres valid until a switch event, then a gap, then the same edge superseded by a new value. Overwriting would erase the earlier interval; appending episodes with validity intervals keeps both, so a query at a past timestamp reconstructs the world as it was.">
+    <defs>
+      <marker id="bt-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--color-faint)"></path>
+      </marker>
+    </defs>
+
+    <text x="20" y="18" font-family="var(--font-mono)" font-size="10" fill="var(--color-faint)">fact: "primary database" — tracked over time, not overwritten</text>
+
+    <!-- timeline axis -->
+    <line x1="40" y1="86" x2="720" y2="86" stroke="var(--color-border)" stroke-width="1.5" marker-end="url(#bt-arrow)"></line>
+    <text x="724" y="90" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">time</text>
+
+    <!-- interval 1: Postgres -->
+    <rect x="56" y="58" width="280" height="30" rx="6" fill="color-mix(in oklab, var(--color-accent) 12%, var(--color-surface))" stroke="var(--color-accent)"></rect>
+    <text x="196" y="78" text-anchor="middle" font-family="var(--font-sans)" font-size="12" font-weight="600" fill="var(--color-ink)">= Postgres</text>
+    <text x="56" y="108" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-faint)">valid_from</text>
+
+    <!-- switch event -->
+    <line x1="336" y1="44" x2="336" y2="112" stroke="#C9821B" stroke-width="1.6" stroke-dasharray="4 3"></line>
+    <text x="336" y="40" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="#C9821B">switch decision</text>
+
+    <!-- interval 2: new DB -->
+    <rect x="336" y="58" width="368" height="30" rx="6" fill="color-mix(in oklab, #2E8B57 12%, var(--color-surface))" stroke="#2E8B57"></rect>
+    <text x="520" y="78" text-anchor="middle" font-family="var(--font-sans)" font-size="12" font-weight="600" fill="var(--color-ink)">= distributed store  (current)</text>
+
+    <!-- query markers -->
+    <g>
+      <circle cx="196" cy="86" r="4" fill="var(--color-accent)"></circle>
+      <text x="196" y="138" text-anchor="middle" font-family="var(--font-sans)" font-size="10.5" fill="var(--color-ink)">"what was true</text>
+      <text x="196" y="152" text-anchor="middle" font-family="var(--font-sans)" font-size="10.5" fill="var(--color-ink)">then?" → Postgres</text>
+    </g>
+    <g>
+      <circle cx="600" cy="86" r="4" fill="#2E8B57"></circle>
+      <text x="600" y="138" text-anchor="middle" font-family="var(--font-sans)" font-size="10.5" fill="var(--color-ink)">"what is true</text>
+      <text x="600" y="152" text-anchor="middle" font-family="var(--font-sans)" font-size="10.5" fill="var(--color-ink)">now?" → new store</text>
+    </g>
+
+    <text x="380" y="180" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-faint)">overwrite would erase the left interval — and with it, "why did we switch?"</text>
+  </svg>
+</Diagram>

@@ -5,7 +5,7 @@ pubDate: 2026-06-09
 category: ai-engineering
 audience: technical
 tags: ["claude-code", "automation", "nodejs", "experiments"]
-heroImage: ../../assets/blog/ai-sudo-access.png
+heroImage: ../../assets/blog/ai-sudo-access.svg
 featured: false
 draft: false
 ---
@@ -14,9 +14,11 @@ import sudoErrorLogs from "../../assets/blog/sudo-error-logs.jpeg";
 import sudoAutoFixer from "../../assets/blog/sudo-auto-fixer.jpeg";
 import sudoPm2Restart from "../../assets/blog/sudo-pm2-restart.jpeg";
 
-> **TL;DR.** I wired a feedback loop around an aging Node.js backend: tail the logs, and when an
-> error shows up, hand the stack trace to Claude Code with permission to fix, build, and restart —
-> no approval prompts. Over a 45-minute lunch it cleared 12 bugs.
+<Tldr>
+
+I wired a feedback loop around an aging Node.js backend: tail the logs, and when an error shows up, hand the stack trace to Claude Code with permission to fix, build, and restart — **no approval prompts**. Over a 45-minute lunch it cleared 12 bugs. (And yes — I ran it in a sandbox on purpose.)
+
+</Tldr>
 
 ## The setup: a simple feedback loop
 
@@ -75,9 +77,13 @@ logStream.stderr.on('data', (data) => console.error(`Log stream error: ${data}`)
 In a 45-minute window, the loop cleared a pile of issues that would normally have eaten an
 afternoon:
 
-- **7 ReferenceErrors** — leftovers from an incomplete refactor.
-- **3 dependency clashes** — including a missing peer dependency it identified and a version mismatch it verified.
-- **2 async/await issues** — unhandled promise rejections, wrapped with proper error handling.
+<Callout type="output" title="12 bugs cleared in one lunch break">
+
+- **7 ReferenceErrors** — leftovers from an incomplete refactor
+- **3 dependency clashes** — a missing peer dependency it identified, a version mismatch it verified
+- **2 async/await issues** — unhandled promise rejections, wrapped with proper error handling
+
+</Callout>
 
 <Figure
   src={sudoPm2Restart}
@@ -88,8 +94,8 @@ afternoon:
 ## The "wait, what?" moment
 
 At one point the server hit a port conflict. Without being told to, the AI ran `lsof -i :3000` to
-find the blocking process, killed it with `kill -9`, and restarted the server. None of that was in
-my instructions — it reasoned its way there.
+find the blocking process, killed it with `kill -9`, and restarted the server. <mark>None of that was in
+my instructions — it reasoned its way there.</mark>
 
 ## The big question: is it safe?
 
@@ -97,6 +103,14 @@ Handing an AI admin privileges in anything resembling a production environment i
 and I won't pretend otherwise. I ran this in a local sandbox precisely because of that. But the
 exercise made one thing clear: there's real value in automating the repetitive parts of the
 development cycle — the monitoring, the fixing, the restarting.
+
+<Callout type="danger" title="Don't point this at production">
+An approval-free fix-build-restart loop with shell access is a fun experiment and a terrible
+production setup. The same reasoning that killed a stray process could just as easily run a
+destructive command on a real database. Run it in a sandbox, scope the permissions, and keep a
+human gate on anything irreversible — the point is to automate the *boring* parts, not to hand
+over the keys.
+</Callout>
 
 ## The takeaway
 

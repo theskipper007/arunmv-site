@@ -52,6 +52,29 @@ const blogPosting = {
   <ReadingProgress client:idle />
 
   <div class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
+    <a
+      href="/blog"
+      class="group mb-6 inline-flex items-center gap-1.5 font-mono text-xs text-faint no-underline transition-colors hover:text-accent"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        class="transition-transform group-hover:-translate-x-0.5"
+      >
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back to blog
+    </a>
+
     <Breadcrumb
       items={[
         { label: "Home", href: "/" },
@@ -60,51 +83,52 @@ const blogPosting = {
       ]}
     />
 
-    <header class="mx-auto mt-8 max-w-[68ch]">
-      <CategoryPill category={category} />
-      <h1
-        class="mt-4 font-serif text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl"
-      >
-        {title}
-      </h1>
-      <p class="mt-4 text-lg text-muted">{description}</p>
-      <p class="mt-5 font-mono text-xs text-faint">
-        <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
-        {updatedDate && <> · updated {formatDate(updatedDate)}</>}
-        · {minutes} min read
-      </p>
-    </header>
+    <div class="mt-8 lg:grid lg:grid-cols-[1fr_16rem] lg:gap-12">
+      <div class="mx-auto w-full min-w-0 max-w-[68ch]">
+        <header>
+          <CategoryPill category={category} />
+          <h1
+            class="mt-4 font-serif text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl"
+          >
+            {title}
+          </h1>
+          <p class="mt-4 text-lg text-muted">{description}</p>
+          <p class="mt-5 font-mono text-xs text-faint">
+            <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+            {updatedDate && <> · updated {formatDate(updatedDate)}</>}
+            · {minutes} min read
+          </p>
+        </header>
 
-    <div class="mx-auto mt-8 max-w-[68ch]">
-      <CoverArt
-        category={category}
-        image={heroImage}
-        video={heroVideo}
-        alt={title}
-        ratio="16 / 9"
-      />
-    </div>
-
-    <div class="mt-10 lg:grid lg:grid-cols-[1fr_16rem] lg:gap-12">
-      <article class="prose mx-auto w-full max-w-[68ch]" data-pagefind-body>
-        {series && <SeriesNav seriesName={series.name} parts={series.parts} currentId={post.id} />}
-        <slot />
-
-        <hr />
-        <div class="flex flex-wrap gap-x-3 gap-y-2">
-          {tags.map((tag) => <Tag tag={tag} />)}
+        <div class="mt-8">
+          <CoverArt
+            category={category}
+            image={heroImage}
+            video={heroVideo}
+            alt={title}
+            ratio="16 / 9"
+            position="left"
+          />
         </div>
-      </article>
+
+        <article class="prose mt-10 w-full max-w-none" data-pagefind-body>
+          {series && <SeriesNav seriesName={series.name} parts={series.parts} currentId={post.id} />}
+          <slot />
+
+          <hr />
+          <div class="flex flex-wrap gap-x-3 gap-y-2">
+            {tags.map((tag) => <Tag tag={tag} />)}
+          </div>
+        </article>
+
+        <RelatedPosts posts={related} />
+      </div>
 
       <aside class="hidden lg:block">
         <div class="sticky top-24">
           <TableOfContents headings={headings} client:idle />
         </div>
       </aside>
-    </div>
-
-    <div class="mx-auto max-w-[68ch]">
-      <RelatedPosts posts={related} />
     </div>
   </div>
 </BaseLayout>

@@ -1,0 +1,71 @@
+---
+title: "RAG vs Fine-Tuning vs Long Context: My Decision Framework"
+description: "'Should we fine-tune?' is usually the wrong first question. Ask instead: is the gap knowledge or behavior, and how often does the answer change?"
+pubDate: 2026-03-05
+category: ai-engineering
+audience: technical
+tags: ["rag", "fine-tuning", "long-context", "architecture", "llmops"]
+heroImage: ../../assets/blog/rag-vs-finetuning-vs-long-context.svg
+featured: false
+draft: false
+---
+
+import RagDecisionTree from "../../components/diagrams/RagDecisionTree.astro";
+
+<Tldr>
+
+RAG, fine-tuning, and long context aren't competing answers to one question — they answer different questions that look alike from a distance. Start by asking whether the gap is *knowledge* or *behavior*, and how often the answer changes. Those two questions usually eliminate the wrong option **before you've spent a rupee or a GPU-hour**.
+
+</Tldr>
+
+"Should we fine-tune?" is almost always the wrong first question. It's the most interesting option, so it's the one people reach for, and most of the time it's the one they don't need. The real question is duller and more useful: <mark>where does this knowledge need to live, and how often does it change?</mark>
+
+The decision came up the moment we tried to give an AI assistant real knowledge of our engineering org — the code, the tickets, the designs, the way they connect. "Fine-tune a model on our codebase" was the first suggestion in the room, and it was the exciting one. I had to argue for the boring answer, which meant being precise about *why* the exciting one was wrong here rather than just asserting it. The clarifying fact turned out to be a single property of the data: it changes on every merge.
+
+The three options answer the same question — how do I get knowledge the base model lacks into its answers — in fundamentally different ways. Fine-tuning bakes knowledge into the model's weights: parametric knowledge, fast at inference, but fixed at training time and expensive to update. RAG keeps knowledge external and retrieves it at query time: non-parametric, always current if your index is, with retrieval latency as the cost. Long context skips retrieval and stuffs the relevant material straight into the prompt: simple, but you pay for every token on every call, and models degrade in the middle of long inputs — the "lost in the middle" effect, where material buried mid-context gets attended to less reliably than material at the edges.
+
+The tradeoffs that actually decide it come down to four axes: cost, latency, freshness, and maintainability.
+
+| | Fine-tuning | RAG | Long context |
+|---|---|---|---|
+| **Freshness** | Stale until retrained | Current as the index | Current per request |
+| **Per-query cost** | Low | Medium | High (pays for tokens every call) |
+| **Updating knowledge** | Retrain | Re-index | Change the prompt |
+| **Best at** | Behavior, format, tone | Large, changing knowledge | Small, self-contained context |
+
+That table is the whole framework, and it's the one list I'll allow myself here, because the comparison is genuinely parallel.
+
+<RagDecisionTree />
+
+## The decision I actually made
+
+The knowledge was a living engineering corpus — source that changes every hour, tickets that move every day, designs that get revised — so the answer was RAG, backed by a knowledge graph for the relationships between those things. New context is in front of the assistant as soon as it's ingested and indexed; there's nothing to retrain.
+
+I rejected the other two for concrete reasons, not on principle. Fine-tuning was wrong because the knowledge changed faster than I could ever retrain — by the time a model finished training on a snapshot of the codebase it would already be describing functions that had been renamed and files that had moved. <mark>Every fine-tuned model would be born stale</mark>, and "stale and confident" is the worst combination a code assistant can have. Long context was wrong because the corpus is an entire multi-product codebase plus its tickets, docs, and designs — orders of magnitude too large to fit any window — and even when I tried slicing it down to a plausible chunk, I paid full token cost on every single call and walked straight into lost-in-the-middle on the very files that mattered.
+
+The freshness axis usually settles it faster than anything else. If the knowledge changes more often than you're willing to retrain, fine-tuning is fighting the problem. If it's too large to fit in a window, long context is out before cost even enters the conversation. RAG wins by elimination as often as it wins on merit, and that's a perfectly good reason to choose it.
+
+## Where I'd choose the opposite
+
+The framework only earns trust if it sometimes points the other way. Inside the very same system there's a sub-task where retrieval is the wrong tool: turning a natural-language question into a graph query. The issue there was never *knowledge* — it was *behavior*: does the model reliably emit valid query syntax against our specific schema? No amount of retrieving more documents fixes a model that writes malformed queries. So that piece is handled the other way — a tight system prompt, a handful of few-shot examples, the schema injected directly, and a validation step that rejects anything that won't parse. Same instinct shapes the answer *format*: the requirement that every answer cite a file and line and return a structured gaps list is a behavior contract, enforced by prompting, not by retrieving more.
+
+This is the distinction people skip: fine-tuning (and its lighter cousin, few-shot prompting) is for changing how the model *behaves*, RAG is for changing what it *knows*, and they're not substitutes. Throwing retrieval at a formatting problem fails no matter how good the retrieval is, because the knowledge was never the issue. And reaching for RAG on a tiny fixed context — a single file the user already has open, say — adds an index, an embedding model, and a retrieval step to a problem a single well-placed prompt would have solved.
+
+<Callout type="dont" title="Don't throw retrieval at a behavior problem">
+If the model emits malformed query syntax or the wrong answer *shape*, no amount of retrieving more documents fixes it — the knowledge was never the gap. Reach for a tight system prompt, few-shot examples, the schema injected directly, and a validation step. Conversely, don't bolt an index onto a single file the user already has open.
+</Callout>
+
+## The rule of thumb I use now
+
+RAG for what the assistant should *know* about a codebase that changes every hour; prompting and few-shot for how it should *behave* and what shape its answers take; long context only for the one self-contained thing already in hand that won't change before the call returns. The framing that keeps me honest: start by asking whether the gap is knowledge or behavior, and how often the answer changes. Those two questions eliminate the wrong option before you've spent a rupee or a GPU-hour on it.
+
+## The takeaway
+
+These three aren't competing answers to one question — they're answers to different questions that look alike from a distance. Most of the time the right call is settled by freshness and size before you ever get to the interesting tradeoffs, which is why fine-tuning, the option everyone wants to reach for first, is usually the one to reach for last.
+
+<Callout type="reference" title="Papers worth reading next">
+
+- Lewis et al., [*Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks*](https://arxiv.org/abs/2005.11401) (2020) — knowledge that stays external and current.
+- Liu et al., [*Lost in the Middle: How Language Models Use Long Contexts*](https://arxiv.org/abs/2307.03172) (2023) — the degradation that makes long context a last resort for large corpora.
+
+</Callout>

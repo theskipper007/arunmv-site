@@ -1,0 +1,32 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>The relentless power of minimalism</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.025"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F472B6" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#F472B6" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="560" cy="185" rx="170" ry="160" fill="url(#glow)"/>
+
+  <!-- minimalism: a single thin ring and one essential dot, lots of space -->
+  <circle cx="560" cy="185" r="78" fill="none" stroke="#F472B6" stroke-width="0.8" opacity="0.28"/>
+  <circle cx="560" cy="185" r="48" fill="none" stroke="#F472B6" stroke-width="0.8" opacity="0.18"/>
+  <circle cx="560" cy="185" r="14" fill="#F472B6" opacity="0.45" filter="url(#blur)"/>
+  <circle cx="560" cy="185" r="7" fill="#F472B6"/>
+
+  <!-- text -->
+  <text x="56" y="118" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#F472B6">LIFESTYLE · OWN LESS</text>
+  <text x="55" y="178" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="42" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">The Power of</text>
+  <text x="55" y="226" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="42" font-weight="700" letter-spacing="-0.02em" fill="#F472B6">Minimalism</text>
+  <line x1="56" y1="248" x2="200" y2="248" stroke="#F472B6" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="294" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">How owning less makes room for what actually matters</text>
+</svg>

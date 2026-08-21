@@ -1,0 +1,58 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Your Evals Have No Tests</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C2402F" stop-opacity="0.24"/>
+      <stop offset="100%" stop-color="#C2402F" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="540" cy="180" rx="200" ry="175" fill="url(#glow)"/>
+
+  <!-- 4x5 grid of mutants: filled = killed, hollow-x = escaped -->
+  <g transform="translate(430,90)">
+    <!-- row/col spacing 26 -->
+    <!-- killed (green check) -->
+    <g stroke-width="2">
+      <circle cx="0" cy="0" r="9" fill="none" stroke="#2E8B57"/>
+      <path d="M-4 0 L-1 3 L4 -4" fill="none" stroke="#2E8B57" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="34" cy="26" r="9" fill="none" stroke="#2E8B57"/>
+      <path d="M30 26 L33 29 L38 22" fill="none" stroke="#2E8B57" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="94" cy="52" r="9" fill="none" stroke="#2E8B57"/>
+      <path d="M90 52 L93 55 L98 48" fill="none" stroke="#2E8B57" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="104" r="9" fill="none" stroke="#2E8B57"/>
+      <path d="M4 104 L7 107 L12 100" fill="none" stroke="#2E8B57" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <!-- escaped (red x), the majority -->
+    <g stroke="#C2402F" stroke-width="2" stroke-linecap="round">
+      <g transform="translate(26,0)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(60,0)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(-8,26)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(60,26)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(88,26)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(0,52)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(26,52)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(60,52)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(-24,78)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(8,78)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(42,78)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(76,78)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(-16,104)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(34,104)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(60,104)"><circle r="9" fill="none"/><path d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+    </g>
+  </g>
+
+  <!-- text -->
+  <text x="56" y="106" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#C2402F">EVALS · MUTATION TESTING</text>
+  <text x="55" y="162" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Your Evals</text>
+  <text x="55" y="204" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Have No</text>
+  <text x="55" y="246" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.02em" fill="#C2402F">Tests</text>
+  <line x1="56" y1="266" x2="200" y2="266" stroke="#C2402F" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="312" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">Break it on purpose · count what gets through · measure the noise floor</text>
+</svg>

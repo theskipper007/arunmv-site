@@ -1,0 +1,41 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="Five re-runs of the same unchanged suite (n=40) scatter within a σ=0.041 noise band — a minimum detectable effect of about 9.2 points. The 3-point CI threshold sits inside the noise: it fires on chance roughly half the time. The wrong-year escape (a real 6.8-point drop) is still inside the band and invisible; only widening the eval set narrows the band enough to see it."
+>
+  <svg viewBox="0 0 760 220" role="img" aria-label="Noise floor chart. Five repeated runs of an unchanged eval suite scatter around a mean, forming a noise band wider than a proposed 3 point regression threshold, and wider than a real 6.8 point regression that stays hidden inside the band.">
+    <text x="20" y="26" font-family="var(--font-sans)" font-size="13" font-weight="600" fill="var(--color-ink)">Can the suite see anything at all?</text>
+
+    <!-- axis -->
+    <line x1="60" y1="170" x2="740" y2="170" stroke="var(--color-border)"></line>
+    <text x="60" y="190" font-family="var(--font-mono)" font-size="10" fill="var(--color-faint)">0.70</text>
+    <text x="720" y="190" font-family="var(--font-mono)" font-size="10" fill="var(--color-faint)">0.95</text>
+
+    <!-- noise band, centered ~0.86, +/- ~2sigma visually -->
+    <rect x="330" y="60" width="140" height="110" fill="var(--color-accent)" opacity="0.12"></rect>
+    <text x="400" y="52" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--color-accent)">noise band (σ=0.041)</text>
+
+    <!-- 5 repeated-run dots, unchanged suite -->
+    <circle cx="365" cy="120" r="5" fill="var(--color-ink)"></circle>
+    <circle cx="382" cy="100" r="5" fill="var(--color-ink)"></circle>
+    <circle cx="398" cy="135" r="5" fill="var(--color-ink)"></circle>
+    <circle cx="415" cy="108" r="5" fill="var(--color-ink)"></circle>
+    <circle cx="430" cy="122" r="5" fill="var(--color-ink)"></circle>
+    <text x="398" y="150" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--color-muted)">5 re-runs, same suite</text>
+
+    <!-- 3pt threshold marker, inside band -->
+    <line x1="470" y1="60" x2="470" y2="170" stroke="#C9821B" stroke-width="1.6" stroke-dasharray="4 3"></line>
+    <text x="478" y="70" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#C9821B">3pt threshold</text>
+
+    <!-- real 6.8pt regression, still inside band -->
+    <circle cx="500" cy="115" r="6" fill="#C2402F"></circle>
+    <text x="512" y="118" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#C2402F">real 6.8pt drop — still hidden</text>
+
+    <!-- MDE marker, outside band -->
+    <line x1="610" y1="60" x2="610" y2="170" stroke="#2E8B57" stroke-width="1.6" stroke-dasharray="4 3"></line>
+    <circle cx="640" cy="112" r="6" fill="#2E8B57"></circle>
+    <text x="618" y="52" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#2E8B57">MDE 9.2pt — first drop this suite can prove</text>
+  </svg>
+</Diagram>

@@ -17,7 +17,7 @@ import VectorVsGraph from "../../components/diagrams/VectorVsGraph.astro";
 
 <Tldr>
 
-Vector-only RAG returns flat, context-poor chunks ranked purely by similarity. Modeling entities and relationships in a graph lets you traverse *why* things connect — which grounds LLM answers in **structure, not just nearness**. This post sets up the series.
+Vector-only RAG returns flat, context-poor chunks ranked purely by similarity. Modeling entities and relationships in a graph lets you traverse *why* things connect, which grounds LLM answers in **structure, not just nearness**. This post sets up the series.
 
 </Tldr>
 
@@ -34,7 +34,7 @@ relationship questions, and relationships are exactly what a flat vector index t
 
 <Callout type="note" title="The failure mode">
 When a user asks a multi-hop question, similarity search returns several chunks that each look
-relevant in isolation but don't connect. The model then has to *guess* the connective tissue —
+relevant in isolation but don't connect. The model then has to *guess* the connective tissue,
 and that's where hallucinations creep in.
 </Callout>
 
@@ -58,12 +58,12 @@ neighbourhood with explicit relationships.
 
 ## What's next in this series
 
-We'll build this up across the series — modeling entities in Neo4j, adding episodic time-aware
+We'll build this up across the series: modeling entities in Neo4j, adding episodic time-aware
 memory with Graphiti, and tuning hybrid retrieval so it stays fast and cost-aware.
 
 <Callout type="reference" title="Where this comes from">
 
-- Edge et al., [*From Local to Global: A Graph RAG Approach to Query-Focused Summarization*](https://arxiv.org/abs/2404.16130) (2024) — Microsoft's GraphRAG, traversal over a structured knowledge graph.
-- [Neo4j](https://neo4j.com/developer/graph-database/) — the property-graph model behind the next post in this series.
+- Edge et al., [*From Local to Global: A Graph RAG Approach to Query-Focused Summarization*](https://arxiv.org/abs/2404.16130) (2024). Microsoft's GraphRAG, traversal over a structured knowledge graph.
+- [Neo4j](https://neo4j.com/developer/graph-database/). The property-graph model behind the next post in this series.
 
 </Callout>

@@ -1,0 +1,130 @@
+---
+title: "Your Evals Have No Tests"
+description: "A green eval suite isn't evidence your agent works — it's the absence of evidence. Mutation testing shows you exactly how blind your evals really are."
+pubDate: 2026-08-20
+category: ai-engineering
+audience: technical
+tags: ["evals", "mutation-testing", "ci", "llm-as-judge", "reliability"]
+heroImage: ../../assets/blog/your-evals-have-no-tests.svg
+featured: false
+draft: false
+---
+
+import MutationEscapeRate from "../../components/diagrams/MutationEscapeRate.astro";
+import NoiseFloorMDE from "../../components/diagrams/NoiseFloorMDE.astro";
+
+<Tldr>
+
+A green eval suite is not evidence your system works — it's the absence of evidence, until you've watched it go red for a reason you planted. Mutation testing answers that: deliberately break the prompt, retrieval, model, and agent layers, rerun your evals, and count what gets through. Most production suites let 60%+ of those breaks through, and the ones that escape cluster in the exact failures evals were supposed to catch — wrong-year context that reads fluent, skipped auth checks that still refund correctly. A second number, the noise floor, tells you whether an escape is a real blind spot or just below what your suite can ever resolve. Report both, or neither is meaningful.
+
+</Tldr>
+
+In [how we measure RAG quality](/blog/measuring-rag-quality), the fix for "vibes don't survive a second engineer" was to wire an eval set to a hard CI threshold — NDCG@10 has to clear 0.75 or the change doesn't merge. That's the right fix for the problem it solves: no more shipping on "looks better to me."
+
+But it opens a question nobody asks next: **how do you know the gate itself works?**
+
+You know your unit tests work because you've watched them fail. Break the function, the test goes red, you fix it, the test goes green. That loop is what earns a test suite its authority — not that it's green, but that you've seen it go red for the right reason. An eval suite almost never gets that loop. It goes green on day one, it stays green, and teams slowly start treating "green" as evidence of quality rather than what it actually is: the absence of a signal that anything's wrong yet.
+
+## The question mutation testing asks
+
+Normal software solved this decades ago. DeMillo, Lipton, and Sayward proposed the idea in 1978, and modern tools like [PIT](https://pitest.org/) (Java), [Stryker](https://stryker-mutator.io/) (JS/.NET), and [mutmut](https://mutmut.readthedocs.io/) (Python) run it in CI today: make small, deliberate breaks in your source — flip a `>` to `>=`, invert a boolean, delete an assignment — then rerun the test suite against each mutated version.
+
+- If the tests fail, the mutant is **killed**: your tests noticed.
+- If the tests pass, the mutant **escaped**: your tests are blind to that entire class of bug.
+
+The **mutation score** — mutants killed ÷ mutants generated — is a stricter adequacy bar than line or branch coverage, because coverage only asks "did this line execute," and mutation testing asks "would a test actually notice if this line were wrong." Mature Java codebases running PIT in CI typically land in the 60–90% mutation-score range even after years of investment; greenfield suites frequently start below 40%. The gap between "we have tests" and "our tests would catch a bug" is usually that large, even in a discipline forty years older than LLM evals.
+
+The insight that should worry you about evals is the same one that motivated mutation testing in the first place: you can delete every assertion in a test file and still report 100% line coverage. Coverage measures execution, not correctness. [Just et al. (ISSTA 2014)](https://dl.acm.org/doi/10.1145/2610384.2610404) went further and showed mutants are a statistically valid *proxy* for real faults — suites that kill more mutants also catch more real, human-introduced bugs. That's the load-bearing claim: mutation score isn't a toy metric, it correlates with the thing you actually care about.
+
+Now translate that to evals. What's the eval-suite equivalent of "100% coverage but zero assertions"? It's "we have 120 examples and four metrics." That number tells you the suite *ran*. It tells you nothing about whether it would notice if your system got worse.
+
+## Nineteen ways to break your own system
+
+The translation from code mutants to eval mutants is direct, and the catalogue writes itself out of every production incident you've ever had:
+
+| Surface | Mutation | What it's supposed to catch |
+|---|---|---|
+| **Prompt** | Delete a constraint word (`only`, `never`, `must`) | Guardrail language quietly dropped in a refactor |
+| **Prompt** | Remove the grounding instruction | Model reverting to parametric knowledge over context |
+| **Prompt** | Drop the output-format spec | Downstream parsers silently failing on malformed output |
+| **Prompt** | Delete a few-shot example | Format/style drift nobody notices until support tickets |
+| **Prompt** | Soften `must` to `should` | Policy language losing its teeth |
+| **Retrieval** | Truncate context to top-1 | Whether your metrics actually need the full context window |
+| **Retrieval** | Shuffle rank order | "Lost in the middle" sensitivity |
+| **Retrieval** | Inject one document from the wrong policy year / wrong tenant | Grounding checks that only verify *a* source exists, not the *right* one |
+| **Retrieval** | Halve the chunk overlap | Answers that straddle a chunk boundary |
+| **Model** | Downgrade a tier | The easiest mutant to kill — and the one everyone over-indexes on |
+| **Model** | Push temperature 0 → 1 | Consistency checks that assume determinism |
+| **Model** | Cut `max_tokens` by 40% | Silent truncation mid-answer |
+| **Agent** | Skip an authorisation tool call | Outcome-only evals scoring a correct refund as a pass regardless of *how* it got there |
+| **Agent** | Swap the order of two tool calls | Evals that check final state but not the causal path |
+| **Agent** | Make one tool return an error | Whether the agent has a real fallback or just retries blindly |
+| **Agent** | Remove a tool from the available set | Graceful degradation vs. silent capability loss |
+
+Apply each mutation, rerun your existing eval suite unchanged, and count what got through. That number — **escape rate** — is the first honest measurement of eval quality most teams will ever compute.
+
+<MutationEscapeRate />
+
+Most production suites land north of 60% escape rate the first time they run this, and the escapes cluster in predictable, embarrassing places:
+
+- **Nearly everyone catches the model downgrade.** Metrics are usually output-quality metrics, and a weaker model writes visibly worse text. This is the mutant that gives teams false confidence — "our evals work, look, they caught the GPT-3.5 downgrade" — while telling you nothing about the other three surfaces.
+- **Nearly nobody catches `inject-wrong-year-document`.** The answer stays fluent, stays grounded-*looking*, and is confidently wrong — precisely the failure mode the suite was supposedly built for. Faithfulness scorers check "is this claim supported by *some* retrieved passage," not "is the retrieved passage the *correct* one." A wrong-year policy document supports the claim just fine.
+- **Essentially nobody catches `skip-auth`.** Outcome-only evals score a refund as correct if the dollar amount matches, independent of whether the agent verified authorization before issuing it. This is the mutant that maps most directly to real incidents: the agent did the right thing by accident, and no metric in the suite was ever positioned to notice it skipped a step.
+
+## The second number: can your suite see anything at all?
+
+There's a failure mode that looks identical to a missing check on the page but needs the opposite fix, and conflating the two is how teams end up writing metrics that can never work.
+
+Run your unchanged suite five times. Change nothing — same prompts, same model, same everything. Watch the numbers move anyway, because LLM output is stochastic even at temperature 0 once you account for batching nondeterminism, retrieval index drift, and judge-model variance. That spread is your **noise floor**, and it sets a hard ceiling on what the suite can ever detect, independent of how many metrics you bolt on.
+
+<NoiseFloorMDE />
+
+The statistic that formalizes this is the **minimum detectable effect (MDE)**: roughly, how large a real regression has to be before it's reliably distinguishable from run-to-run noise, given your sample size and observed variance. A 40-example set with a standard deviation of 4 points has an MDE around 9 points — smaller regressions are, by construction, indistinguishable from chance. Configure a 3-point CI threshold on top of that and the gate fires on noise roughly half the time. Engineers learn the pattern fast: re-run it until it's green. The check becomes decorative, and worse, it trains the team to distrust the *next* alert too, including the real one.
+
+So an escaped mutant has two possible diagnoses, and mixing them up sends people in the wrong direction:
+
+- **Blind spot** — the drop was real and large, but no metric was pointed at it. *Write a new check.*
+- **Below resolution** — the drop was real, but smaller than the suite's noise floor. *Add examples until MDE clears the effect size you care about, or explicitly accept you can't detect it yet.*
+
+Reporting escape rate without resolution sends people off writing metrics that mathematically cannot help — you can add a hundred new assertions to a 40-example set and the MDE barely moves, because it's driven by sample size and variance, not metric count. Both numbers or neither.
+
+## What this looks like in practice
+
+```
+SABOT — 19 mutants, 4 killed, 15 escaped (79% escape rate)
+
+KILLED    prompt/delete-only            groundedness 0.86 → 0.71  ✓
+KILLED    retrieval/top-1               recall@5     0.91 → 0.62  ✓
+ESCAPED   retrieval/inject-wrong-year   groundedness 0.86 → 0.85  ✗ CRITICAL
+ESCAPED   agent/skip-auth               task_success 0.88 → 0.88  ✗ CRITICAL
+ESCAPED   model/temp-1.0                all metrics within noise  ✗ major
+
+Resolution: n=40, σ=0.041 → MDE 9.2pts. 11 escapes sit below your
+suite's noise floor. Adding metrics will not help until n ≥ 310.
+```
+
+Two caveats, because this technique has a real, well-documented failure mode of its own.
+
+<Callout type="dont" title="Watch for equivalent mutants">
+Some breaks don't actually degrade anything — a mutation that happens to produce semantically identical output — so "catching" it is a false positive on the score. This is exactly what kept mutation testing out of mainstream software adoption for twenty years; [Papadakis et al.'s 2019 survey](https://hal.science/hal-01965103/document) covers it in depth, and later work on *trivial compiler equivalence* narrowed but never eliminated it. The fix isn't generating mutants cleverly — it's hand-curating a catalogue where every mutant is known-bad by construction (a skipped auth check is never equivalent to a checked one), and labeling each with a severity so the score is weighted rather than raw.
+</Callout>
+
+<Callout type="warning" title="This is an audit, not a gate">
+Nineteen mutants is nineteen full eval runs. On an LLM system that's real latency and real API spend, not the seconds a code mutant costs. Put this on a nightly cron and on any PR that touches the eval suite itself — not on every commit. Treat it like a merge-blocking gate and it gets deleted by month two, which is how every good idea in this space quietly dies.
+</Callout>
+
+## The thing underneath
+
+The [measuring RAG quality](/blog/measuring-rag-quality) post argued that a green dashboard is not evidence your agent works. This one argues the sharper version: a green *eval* is not evidence either, until you've watched it go red for a reason you planted — and until you know whether it's even capable of going red for the regression you actually care about.
+
+That's the loop `sabot` is built to close. Break it on purpose. Count what got through. Measure whether the suite could have seen it at all.
+
+**What would escape your suite today?**
+
+<Callout type="reference" title="Papers worth reading next">
+
+- DeMillo, Lipton & Sayward, [*Hints on Test Data Selection: Help for the Practicing Programmer*](https://ieeexplore.ieee.org/document/1646911) (1978) — the founding paper on mutation testing.
+- Just, Jalali, Inozemtseva, Ernst, Holmes & Fraser, [*Are Mutants a Valid Substitute for Real Faults in Software Testing?*](https://dl.acm.org/doi/10.1145/2610384.2610404) (ISSTA 2014) — the empirical case that mutation score correlates with real-fault detection, not just a synthetic proxy.
+- Papadakis, Kintis, Zhang, Jia, Le Traon & Harman, [*Mutation Testing Advances: An Analysis and Survey*](https://hal.science/hal-01965103/document) (2019) — covers the equivalent-mutant problem and the tooling landscape referenced above.
+
+</Callout>

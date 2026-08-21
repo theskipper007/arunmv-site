@@ -1,6 +1,6 @@
 ---
 title: "Episodic memory for agents with Graphiti"
-description: "Episodic, bi-temporal memory with Graphiti lets an AI agent answer not just what's true now, but what was true when — without re-indexing the whole world."
+description: "Episodic, bi-temporal memory with Graphiti lets an AI agent answer not just what's true now, but what was true when, without re-indexing the whole world."
 pubDate: 2026-05-20
 category: ai-engineering
 audience: technical
@@ -17,12 +17,12 @@ import BiTemporalMemory from "../../components/diagrams/BiTemporalMemory.astro";
 
 <Tldr>
 
-A static graph tells you what's true **now**. An *episodic* graph tells you what was true **at a point in time** — which is what agents actually need to reason about change, audits, and their own past decisions.
+A static graph tells you what's true **now**. An *episodic* graph tells you what was true **at a point in time**, which is what agents actually need to reason about change, audits, and their own past decisions.
 
 </Tldr>
 
 In [part one](/blog/hello-world) we argued that relationships beat raw similarity. But real
-knowledge isn't static — facts get superseded, preferences change, decisions get revised.
+knowledge isn't static: facts get superseded, preferences change, decisions get revised.
 
 ## The problem with overwriting
 
@@ -39,7 +39,7 @@ over the latest valid facts; the "historical" view is the same query at a past t
 ## Bi-temporal in practice
 
 Graphiti tracks both when something happened and when the system learned about it. That
-bi-temporal model is what lets an agent reconstruct the world as it was — essential for audits,
+bi-temporal model is what lets an agent reconstruct the world as it was, essential for audits,
 debugging, and explaining its own past decisions.
 
 The cost is more edges and more careful queries. <mark>The payoff is memory that reflects reality
@@ -47,7 +47,7 @@ instead of flattening it.</mark>
 
 <Callout type="reference" title="Dig deeper">
 
-- [Graphiti](https://github.com/getzep/graphiti) — the open-source bi-temporal knowledge-graph engine behind this approach.
-- Rasmussen et al., [*Zep: A Temporal Knowledge Graph Architecture for Agent Memory*](https://arxiv.org/abs/2501.13956) (2025) — the paper formalizing temporally-aware agent memory.
+- [Graphiti](https://github.com/getzep/graphiti). The open-source bi-temporal knowledge-graph engine behind this approach.
+- Rasmussen et al., [*Zep: A Temporal Knowledge Graph Architecture for Agent Memory*](https://arxiv.org/abs/2501.13956) (2025). The paper formalizing temporally-aware agent memory.
 
 </Callout>

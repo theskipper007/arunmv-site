@@ -1,6 +1,6 @@
 ---
 title: "Making AI production-ready isn't about the model"
-description: "Shipping production AI isn't about model benchmarks — it's the reliability, retries, fallbacks, observability, and cost discipline that keep LLM systems alive."
+description: "Shipping production AI isn't about model benchmarks; it's the reliability, retries, fallbacks, observability, and cost discipline that keep LLM systems alive."
 pubDate: 2026-06-01
 category: tech-opinions
 audience: technical
@@ -14,7 +14,7 @@ import ReliabilityPath from "../../components/diagrams/ReliabilityPath.astro";
 
 <Tldr>
 
-The hard part of shipping AI isn't picking the model — it's **everything around it**: retries, fallbacks, observability, and keeping the bill sane. The leaderboard rarely decides whether your system survives production. The system around the model does.
+The hard part of shipping AI isn't picking the model; it's **everything around it**: retries, fallbacks, observability, and keeping the bill sane. The leaderboard rarely decides whether your system survives production. The system around the model does.
 
 </Tldr>
 
@@ -25,7 +25,7 @@ rarely the bottleneck. <mark>The bottleneck is the system around the model.</mar
 
 ## Reliability first
 
-LLM calls fail — rate limits, timeouts, malformed JSON. <u>Treat them like any flaky network
+LLM calls fail: rate limits, timeouts, malformed JSON. <u>Treat them like any flaky network
 dependency</u>: bounded retries with backoff, a deterministic fallback, and a circuit breaker so one
 slow provider doesn't take down the request path. Doing this carefully cut our error rate by
 about 25%.
@@ -33,13 +33,13 @@ about 25%.
 <Callout type="do" title="Wrap every model call like a flaky network dependency">
 Bounded retries with exponential backoff, a deterministic fallback for when the model is down or
 returns garbage, and a circuit breaker so one slow provider can't stall the whole request path.
-None of it is clever — and it's the difference between a demo and a service.
+None of it is clever, and it's the difference between a demo and a service.
 </Callout>
 
 ## Make it observable
 
 You can't fix what you can't see. Log prompts, model, latency, token counts, and outcome for
-every call. When quality regresses, <mark>you want to diff prompts and inputs — not guess</mark>.
+every call. When quality regresses, <mark>you want to diff prompts and inputs, not guess</mark>.
 
 ## Spend like it's your money
 
@@ -48,9 +48,9 @@ model and reserving the expensive one for hard cases saved us $5,000+/yr without
 
 <Callout type="output" title="What the unglamorous work bought">
 
-- **Error rate down ~25%** — from retries, fallback, and the circuit breaker
-- **$5,000+/yr saved** — easy requests routed to a cheaper model, no quality complaints
-- **Regressions diffable** — every call logged, so "what changed" is a query, not a guess
+- **Error rate down ~25%**: from retries, fallback, and the circuit breaker
+- **$5,000+/yr saved**: easy requests routed to a cheaper model, no quality complaints
+- **Regressions diffable**: every call logged, so "what changed" is a query, not a guess
 
 </Callout>
 

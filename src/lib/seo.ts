@@ -1,6 +1,6 @@
 /** Single source of site-wide identity, links, and nav (spec §11). */
 export const SITE = {
-  url: "https://arun-mv.com",
+  url: "https://www.arun-mv.com",
   name: "Arun MV",
   tagline: "I build AI products that hold up past the demo.",
   description:

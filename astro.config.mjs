@@ -12,7 +12,7 @@ import { remarkReadingTime } from './src/lib/reading-time.ts';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://arun-mv.com',
+  site: 'https://www.arun-mv.com',
   integrations: [mdx(), react(), sitemap()],
 
   markdown: {

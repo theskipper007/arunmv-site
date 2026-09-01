@@ -6,7 +6,7 @@ long-term, SEO- and AI-crawler-optimized blogging platform.
 **Stack:** Astro 6 · MDX content collections · React islands · Tailwind v4 (CSS-first
 tokens) · Pagefind search · Shiki highlighting · deployed to Vercel/Cloudflare.
 
-**Domain:** https://arun-mv.com
+**Domain:** https://www.arun-mv.com
 
 ## Status
 
@@ -42,7 +42,7 @@ npm run build           # → dist/ (Astro + Pagefind index)
 # Cloudflare:  wrangler pages deploy dist
 ```
 
-Then submit `https://arun-mv.com/sitemap-index.xml` to Google Search Console & Bing.
+Then submit `https://www.arun-mv.com/sitemap-index.xml` to Google Search Console & Bing.
 
 ## Develop
 

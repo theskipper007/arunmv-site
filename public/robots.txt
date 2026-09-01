@@ -13,4 +13,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://arun-mv.com/sitemap-index.xml
+Sitemap: https://www.arun-mv.com/sitemap-index.xml

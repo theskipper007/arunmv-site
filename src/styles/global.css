@@ -189,6 +189,41 @@
     padding: 1rem 1.15rem;
     overflow-x: auto;
   }
+  /* Tables — sans-serif, bordered rows, zebra striping for scanability. */
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+    font-size: 0.94rem;
+    line-height: 1.55;
+  }
+  .prose thead th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-ink);
+    padding: 0.65em 1em;
+    border-bottom: 2px solid var(--color-border);
+  }
+  .prose tbody td {
+    padding: 0.75em 1em;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+    color: var(--color-ink);
+  }
+  .prose tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .prose tbody tr:nth-child(even) td {
+    background: var(--color-surface);
+  }
+  .prose th:first-child,
+  .prose td:first-child {
+    padding-left: 0;
+  }
+  .prose th:last-child,
+  .prose td:last-child {
+    padding-right: 0;
+  }
 }
 
 /* Shiki dual-theme: swap to the dark palette under [data-theme="dark"]. */

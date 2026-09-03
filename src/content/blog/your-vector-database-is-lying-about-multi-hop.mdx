@@ -1,0 +1,108 @@
+---
+title: "Your Vector Database Is Lying to You About Multi-Hop"
+description: "Dense retrieval hits a proven geometric ceiling on multi-hop questions and fails silently — similarity scores stay confident even when the evidence is missing."
+pubDate: 2026-09-03
+category: ai-engineering
+audience: technical
+tags: ["rag", "retrieval", "vector-search", "multi-hop", "evaluation"]
+heroImage: ../../assets/blog/multi-hop-retrieval-lie.svg
+featured: false
+draft: false
+---
+
+<Tldr>
+
+Standard top-k dense retrieval cannot reliably answer multi-hop questions — not because your embedding model is too small, but because of a proven geometric ceiling (DeepMind's 2025 LIMIT result) plus the bridge-entity and joint-recall problems underneath it. It fails *silently*: similarity scores stay high and confident even when the retrieved set can't support the answer, so the model writes a fluent, wrong answer instead of saying "I don't have enough." Fix it in order of ROI: hybrid retrieval + reranking, then iterative/decomposed retrieval, then a graph index for entity-dense corpora — and evaluate with **joint all-hop recall**, not averaged recall@k, because averaging is exactly what hides the failure.
+
+</Tldr>
+
+Most of what ends up here starts as a decision I had to make on a real system. This one didn't. It started as a line I kept repeating without ever really defending it: "RAG doesn't do multi-hop well, everyone knows that." I had an anecdote, not a mechanism. So this post is a different shape than my usual one — less build log, more research dive — run down to the paper that finally explains *why*, and to the part that actually worries me: not that multi-hop fails, but that it fails while looking fine.
+
+## The mechanism: why one vector can't hold two hops
+
+Take the canonical example: **"Who is the CEO of the company that acquired Instagram?"** That's two hops — *Instagram was acquired by Meta*, then *Meta's CEO is Mark Zuckerberg* — and a single-vector encoder has to cram the whole question into one fixed-dimensional point. The result lands at a centroid: close-ish to documents about the Instagram acquisition, close-ish to documents about CEOs, and nowhere near a document titled "Mark Zuckerberg" that never mentions Instagram at all.
+
+The second hop's evidence shares almost no lexical or semantic surface with the original query — the only thing linking the two is the **bridge entity** (Meta), which the question never names, because naming it is the whole point of hop one. Cosine similarity has no way to follow that link. It's a relevance proxy, not a reasoning operator: a dot product can encode "these are about similar things," but it can't encode a conjunctive constraint like "X such that X acquired Instagram *and* Y is CEO of X." That's a join. Similarity is a nearest-neighbor lookup. You're asking a ruler to do a query planner's job.
+
+It's tempting to assume a bigger embedding model fixes this. It doesn't, and that's the part I hadn't appreciated until I read <u>Weller, Boratko, Naim & Lee</u> (Google DeepMind / JHU, 2025). They connect retrieval to communication-complexity results and prove that for embedding dimension *d*, the number of distinct top-k document subsets any single-vector model can ever return is fundamentally bounded by *d* — regardless of training data or model size. Their LIMIT benchmark instantiates hard relevance combinations against this bound, and SOTA models fail badly on it: on the full corpus, most don't clear 20% recall@100 (GritLM-7B, 4096 dimensions, scores 12.9). Almost no correlation shows up between a model's MTEB score and its LIMIT score — mainstream benchmarks simply don't probe the geometry that breaks.
+
+<Callout type="warning" title="This is architecture, not scale">
+The LIMIT ceiling holds for *any* single-vector embedding model, at any parameter count. Weller et al.'s own recommended escape hatches are multi-vector (ColBERT-style) and cross-encoder architectures — not "a bigger embedding model." If your fix plan is "upgrade the embedding model," it won't move this number.
+</Callout>
+
+Chunking makes it worse before retrieval even starts. Splitting text at a fixed token boundary severs co-reference chains ("the company... *it* later acquired...") that multi-hop needs intact. Anthropic's Contextual Retrieval work is the cleanest evidence I've seen for how much this costs: prepending an LLM-generated context header to each chunk before embedding cut top-20 retrieval failures by 35% on its own, and by 67% combined with contextual BM25 and reranking. A preprocessing fix recovering two-thirds of your failures means naive chunking was *causing* most of them.
+
+## The benchmark mirage
+
+Here's the part that made me distrust my own eval numbers: the standard multi-hop benchmarks are easier than they look, and your "it works" result might be measuring that instead of your system.
+
+HotpotQA, the benchmark most RAG demos quietly lean on, is largely solvable via single-hop shortcuts — a single-paragraph BERT model gets 67 F1 in the distractor setting (Chen & Durrett, 2019), and roughly 35% of its questions resolve by entity-type matching alone. MuSiQue (Trivedi et al., TACL 2022) was built specifically to close that gap, composing questions bottom-up with disconnection filtering so each hop genuinely depends on the last. Its own Disconnected Reasoning score — how much of the question a model can answer by *skipping* the reasoning chain — sits at 37.8 versus HotpotQA's 68.8. If your eval set is HotpotQA-shaped, a good score may be telling you your system is good at shortcuts, not at hops.
+
+It gets worse with scale, not better. Press et al. (self-ask, 2023) define the *compositionality gap* — how often a model nails both sub-questions but botches the composed one — and found that across the GPT-3 family, single-hop accuracy improved faster than multi-hop accuracy as models grew. Bigger models memorize more facts without getting better at composing them. And because these public benchmarks are Wikipedia-based and widely circulated, a chunk of what looks like "correct RAG reasoning" is a model reciting pretraining, not reading what you retrieved — which is why the single most diagnostic test you can run is removing the hop-2 document and checking whether the answer changes anyway.
+
+## The lie: confident scores, missing evidence
+
+This is the finding that reframed the whole problem for me, from "multi-hop is hard" to "multi-hop fails *silently*." Google's Sufficient Context work (Joren et al., ICLR 2025) shows that retrieval confidence and answer sufficiency are different axes entirely — a set of chunks can score uniformly high on similarity while containing zero evidence for one of the two hops the question needs. On MuSiQue, 55.4% of instances have insufficient retrieved context. And instruction-tuned models don't handle that gracefully: given insufficient context, Gemini 1.5 Pro hallucinated 40.4% of the time rather than abstaining, Claude 3.5 Sonnet 36.5%. Worse, adding RAG at all makes models *more* willing to answer instead of less — Gemini's abstention rate fell from 100% with no context to 18.6% with RAG, regardless of whether that context was enough.
+
+<mark>Retrieving something, even the wrong something, makes the model more confident, not more careful.</mark> That's the lie in one sentence: the folder felt full, so the model wrote a polished answer, and the answer is faithful to a folder that was quietly missing the one document that mattered.
+
+Standard RAG evals don't catch this, and that's the second half of the problem. RAGAS-style faithfulness, answer relevance, and context precision all pass on this exact failure — faithfulness passes because the model was faithful to the (incomplete) chunks it got; relevance passes because the answer is on-topic; precision passes because the retrieved chunks are each individually about the right subject. Nothing in the default battery asks whether the *union* of retrieved chunks actually entails the answer.
+
+<Callout type="dont" title="Don't trust averaged recall on multi-hop">
+If you need all N documents for a query and each is retrieved independently with probability p, the odds of getting all N is roughly p^N — so averaged recall@k can read 80% while hiding that 40% of queries are missing a specific hop, a different one each time. Measure **joint all-hop recall**: the fraction of queries where every required hop showed up in the same top-k. HippoRAG reports exactly this (AR@k) and it's where graph methods pull away from flat retrieval — AR@5 on 2WikiMultiHopQA rises from ~20% (ColBERTv2) to ~38% (HippoRAG). Averaging is the enemy; a system can average 90% recall and still hit 0% joint recall on your hardest queries.
+</Callout>
+
+## What actually works, roughly in order of ROI
+
+| Approach | Multi-hop capability | Cost |
+|---|---|---|
+| Hybrid (BM25 + dense) + reranker | Recovers bridge entities BM25 catches and dense retrieval smooths away | Low — do this first |
+| Contextual chunk headers | −49% retrieval failures (Anthropic), stacks with hybrid | Medium (LLM call per chunk, one-time) |
+| Query decomposition / self-ask | Good, but breaks on dependent hops unless iterative | Medium (N calls) |
+| Iterative retrieval (IRCoT) | Up to +21 recall points over one-shot | High (N sequential round-trips) |
+| Graph index (HippoRAG, GraphRAG) | Single-step multi-hop, attacks the bridge-entity problem directly | High to build, cheap to query |
+| Multi-vector (ColBERT) | Better representation, not reasoning by itself | Medium-high (per-token storage) |
+
+Hybrid retrieval plus a reranker is the cheapest fix and the one to run first — BM25 catches the exact bridge-entity name that dense retrieval smooths into a centroid. Anthropic's 49–67% failure reduction comes almost entirely from this plus contextual headers, and it's a config change, not an architecture change. Past that, decomposition (self-ask) breaks compositional questions into ordered sub-queries, but it fails on genuinely dependent hops — you can't retrieve "the CEO of [company from step 1]" before step 1 resolves, so it has to be iterative, not up-front. IRCoT interleaves retrieval with each reasoning step instead, at the cost of N sequential LLM round-trips. And for corpora where entities recur across many documents and query volume is high enough to amortize the build, a graph index (HippoRAG, GraphRAG) attacks the actual mechanism: the bridge entity becomes a node that connects both hops even though the underlying documents share no vocabulary.
+
+Where none of this is worth it: single-hop factoid lookups, small corpora that fit in context, and latency-critical products where an extra round-trip breaks the budget. Don't build a knowledge graph to answer "what's our refund policy."
+
+## How to tell if you actually have the problem
+
+The test that convinced me this wasn't theoretical: label a small eval set with gold documents *per hop*, not just a final answer string, then compute both the flattering number and the honest one.
+
+```python
+def hop_level_recall(results_by_query, gold_by_query):
+    # gold_by_query[q] = [ {doc ids for hop1}, {doc ids for hop2}, ... ]
+    per_hop, joint_hits = [], 0
+    for q, retrieved in results_by_query.items():
+        rset = set(d.id for d in retrieved)
+        hops_present = [len(hop & rset) > 0 for hop in gold_by_query[q]]
+        per_hop.append(sum(hops_present) / len(hops_present))
+        joint_hits += all(hops_present)          # ALL hops present in top-k?
+    return {
+        "avg_per_hop_recall": sum(per_hop) / len(per_hop),           # the flattering number
+        "joint_all_hop_recall": joint_hits / len(results_by_query),  # the honest number
+    }
+```
+
+<Callout type="do" title="Run the counterfactual hop ablation">
+Remove the hop-2 gold document from the corpus and rerun the query. If the answer doesn't change, the model was guessing from parametric memory, not reasoning over what you retrieved — which means your "multi-hop accuracy" number was never measuring retrieval in the first place. It's the single cleanest way to catch the silent-failure pattern this post is about.
+</Callout>
+
+If joint all-hop recall comes back within a few points of single-hop recall, you likely don't have this problem — stop there, the added complexity isn't worth it. If it's meaningfully lower, that gap is the honest size of what your current averaged metrics have been hiding from you.
+
+## The takeaway
+
+The failure isn't that multi-hop retrieval is hard — it's that it fails quietly, behind a similarity score that has no way to tell you the evidence is incomplete. A single embedding vector has a proven ceiling on how many document combinations it can ever surface, chunking makes it worse before retrieval even runs, and the standard benchmarks and standard RAG metrics are both structurally blind to the gap. None of that means RAG can't do multi-hop — hybrid retrieval, decomposition, and graph indexing all demonstrably can. It means the naive flat-vector pattern most demos ship with can't, and the only way to know which one you've built is to stop averaging and ask, per query: did every hop actually show up?
+
+<Callout type="reference" title="Papers worth reading next">
+
+- Weller, Boratko, Naim, Lee, [*On the Theoretical Limitations of Embedding-Based Retrieval*](https://arxiv.org/abs/2508.21038) (2025) — the geometric ceiling this whole post hangs on.
+- Joren, Zhang, Ferng, Juan, Taly, Rashtchian, [*Sufficient Context: A New Lens on Retrieval Augmented Generation Systems*](https://arxiv.org/abs/2411.06037) (ICLR 2025) — why confident retrieval and sufficient retrieval are different things.
+- Trivedi, Balasubramanian, Khot, Sabharwal, [*MuSiQue: Multihop Questions via Single-hop Question Composition*](https://arxiv.org/abs/2108.00573) (TACL 2022) — the benchmark built to defeat single-hop shortcuts.
+- Trivedi, Balasubramanian, Khot, Sabharwal, [*Interleaving Retrieval with Chain-of-Thought Reasoning (IRCoT)*](https://arxiv.org/abs/2212.10509) (ACL 2023) — the iterative fix, with the recall numbers to back it.
+- Gutiérrez et al., [*HippoRAG: Neurobiologically Inspired Long-Term Memory for LLMs*](https://arxiv.org/abs/2405.14831) (NeurIPS 2024) — the graph-index fix, and where the AR@k metric comes from.
+- Anthropic, [*Introducing Contextual Retrieval*](https://www.anthropic.com/engineering/contextual-retrieval) (2024) — the chunking fix, with the 49–67% failure-reduction numbers.
+
+</Callout>

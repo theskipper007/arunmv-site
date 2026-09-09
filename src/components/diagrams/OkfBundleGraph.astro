@@ -1,0 +1,63 @@
+---
+import Diagram from "../mdx/Diagram.astro";
+---
+
+<Diagram
+  caption="Five concepts from the example bundle, linked the way their prose actually links them. matrix-v1 is the load-bearing node: three read paths still point at it, which is exactly what static analysis can't see."
+>
+  <svg viewBox="0 0 760 300" role="img" aria-label="Knowledge graph formed by markdown links between five OKF concepts. logic-engine is consumed by survey-editor and embed-sdk. matrix-v1 is read by export, the report builder, and the results-share page, and is flagged do-not-remove. question-id-stability is referenced by both survey-editor and webhook-delivery. response-shape-v4 constrains logic-engine.">
+    <defs>
+      <marker id="bg-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--color-faint)"></path>
+      </marker>
+    </defs>
+
+    <!-- matrix-v1 : the flagged node -->
+    <circle cx="140" cy="150" r="34" fill="color-mix(in oklab, #C2402F 12%, var(--color-surface))" stroke="#C2402F" stroke-width="1.6"></circle>
+    <text x="140" y="146" text-anchor="middle" font-family="var(--font-sans)" font-size="11" font-weight="700" fill="var(--color-ink)">matrix-v1</text>
+    <text x="140" y="160" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#C2402F">do-not-remove</text>
+
+    <!-- three read-path consumers of matrix-v1 -->
+    <rect x="20" y="20" width="92" height="34" rx="8" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="66" y="41" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" fill="var(--color-ink)">export</text>
+
+    <rect x="20" y="252" width="118" height="34" rx="8" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="79" y="273" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-ink)">report builder</text>
+
+    <rect x="150" y="252" width="130" height="34" rx="8" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="215" y="273" text-anchor="middle" font-family="var(--font-mono)" font-size="8.7" fill="var(--color-ink)">results-share page</text>
+
+    <line x1="105" y1="46" x2="118" y2="128" stroke="#C2402F" stroke-width="1.3" marker-end="url(#bg-arrow)"></line>
+    <line x1="90" y1="252" x2="122" y2="180" stroke="#C2402F" stroke-width="1.3" marker-end="url(#bg-arrow)"></line>
+    <line x1="200" y1="252" x2="155" y2="178" stroke="#C2402F" stroke-width="1.3" marker-end="url(#bg-arrow)"></line>
+
+    <!-- logic-engine -->
+    <circle cx="420" cy="80" r="32" fill="color-mix(in oklab, var(--color-accent) 12%, var(--color-surface))" stroke="var(--color-accent)" stroke-width="1.6"></circle>
+    <text x="420" y="76" text-anchor="middle" font-family="var(--font-sans)" font-size="10.5" font-weight="700" fill="var(--color-ink)">logic-engine</text>
+    <text x="420" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="var(--color-faint)">tier-1</text>
+
+    <rect x="560" y="20" width="120" height="34" rx="8" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="620" y="41" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-ink)">survey-editor</text>
+
+    <rect x="560" y="98" width="110" height="34" rx="8" fill="var(--color-paper)" stroke="var(--color-border)"></rect>
+    <text x="615" y="119" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-ink)">embed-sdk</text>
+
+    <line x1="450" y1="66" x2="558" y2="40" stroke="var(--color-faint)" stroke-width="1.3" marker-end="url(#bg-arrow)"></line>
+    <line x1="451" y1="92" x2="558" y2="110" stroke="var(--color-faint)" stroke-width="1.3" marker-end="url(#bg-arrow)"></line>
+
+    <!-- response-shape-v4 constrains logic-engine -->
+    <rect x="380" y="200" width="150" height="40" rx="8" fill="var(--color-paper)" stroke="var(--color-border)" stroke-dasharray="4 3"></rect>
+    <text x="455" y="219" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-ink)">response-shape-v4</text>
+    <text x="455" y="232" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="var(--color-faint)">contract</text>
+    <line x1="437" y1="200" x2="423" y2="112" stroke="var(--color-faint)" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#bg-arrow)"></line>
+
+    <!-- question-id-stability, bridging both halves -->
+    <rect x="230" y="130" width="140" height="40" rx="8" fill="color-mix(in oklab, #C9821B 10%, var(--color-surface))" stroke="#C9821B"></rect>
+    <text x="300" y="149" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="var(--color-ink)">question-id-stability</text>
+    <text x="300" y="162" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#C9821B">gotcha</text>
+
+    <line x1="230" y1="146" x2="174" y2="148" stroke="#C9821B" stroke-width="1.3" marker-end="url(#bg-arrow)"></line>
+    <line x1="370" y1="140" x2="620" y2="60" stroke="#C9821B" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#bg-arrow)"></line>
+    <text x="510" y="118" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#C9821B">read before regenerating IDs</text>
+  </svg>
+</Diagram>

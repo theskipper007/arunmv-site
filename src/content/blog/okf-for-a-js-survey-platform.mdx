@@ -1,0 +1,399 @@
+---
+title: "The Renderer Nobody Has Used Since 2023"
+description: "A hands-on guide to Google's Open Knowledge Format on a JS/TS monorepo: bundle layout, a scaffold script, CI wiring, and outcomes after three months."
+pubDate: 2026-09-09
+category: ai-engineering
+audience: technical
+tags: ["developer-tooling", "knowledge-management", "agents", "monorepo", "documentation"]
+heroImage: ../../assets/blog/okf-knowledge-bundle.svg
+featured: false
+draft: false
+---
+
+import OkfBundleGraph from "../../components/diagrams/OkfBundleGraph.astro";
+import OkfLifecycle from "../../components/diagrams/OkfLifecycle.astro";
+
+<Tldr>
+
+Google's Open Knowledge Format (OKF) is a directory of markdown files — one required field, `type` — that turns a repo's tribal knowledge into a graph a human *and* an agent can both traverse. Applied to a JS/TS survey platform: scope it to where postmortems point (not "document the platform"), write concepts that state ownership, boundaries, and change risk, and write at least one concept whose whole point is "don't delete this." Scaffold the boilerplate from package.json instead of hand-writing hundreds of files, wire a CI nudge (not a merge block) so it doesn't rot, and point `CLAUDE.md` at the bundle instead of duplicating it. Three months in on the running example below: a second attempt to delete the "dead" Matrix v1 renderer got caught in review in under a day, versus two weeks in production the first time — and the honest cost was maintaining ~50 curated concepts, not the 190 the scaffold generated on day one.
+
+</Tldr>
+
+Somewhere in your survey platform there's a file like `MatrixV1.tsx`. Nobody has created a Matrix v1 question in three years — the editor stopped offering it when v2 shipped. Every signal says dead code: no imports from the editor, zero coverage, ESLint flags it, the bundle analyzer would love to see it go.
+
+So someone deletes it. Two weeks later, a customer opens a PDF export of a 2022 employee engagement study and every matrix question is blank. Nine hundred thousand historical responses still store answers in the v1 answer shape, and the export pipeline needs that renderer to display them. The knowledge existed — in a closed PR review comment, a Slack thread, and one engineer's memory — but nobody could retrieve it in under a day, and your coding agent couldn't retrieve it at all.
+
+Google Cloud recently published the [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing) (OKF) to fix this class of problem. Their examples are all data warehouse — tables, datasets, metrics. This post applies it to the other half of the enterprise: **a product codebase**, specifically a TypeScript/React survey platform in a pnpm monorepo — and, at the end, what actually happened after running it for a quarter.
+
+## OKF in 30 seconds
+
+OKF is the envelope, not the letter. It says nothing about what you write; it standardizes the shape so any postal system can route it. Concretely:
+
+- A **bundle** is a directory of UTF-8 markdown files.
+- A **concept** is one file: YAML frontmatter, then a markdown body.
+- A concept's **id** is its path minus `.md`. `packages/logic-engine.md` → `packages/logic-engine`. No registry, no minted IDs — the filesystem does the naming.
+- Concepts cross-link with ordinary markdown links, turning the directory into a graph.
+- `index.md` and `log.md` are reserved filenames — directory listing and change history.
+- **Exactly one field is required: `type`.** Everything else is yours, and consumers must tolerate fields and types they don't recognize.
+
+That's it. If you can `cat` a file, you can read it. If you can `git clone`, you can ship it.
+
+## Why a JS product codebase needs this more than a warehouse does
+
+JSDoc and inline comments answer *what does this function do*. They're bad at *why is it like this*, *what's still depending on it*, and *what did we already try*. In a JavaScript monorepo the problem is sharper than in most stacks, because three things routinely make code look deletable when it isn't:
+
+1. **Published packages.** Your embed SDK is on npm and pinned in customer HTML you don't control. There is no such thing as removing an export.
+2. **Persisted data shapes.** Responses stored in Postgres JSONB are a schema you can't migrate away from without touching millions of rows.
+3. **Isomorphic code.** The same module runs in the browser and on the server, and divergence between the two is invisible until a respondent hits submit.
+
+Tree-shaking and coverage tools are confidently wrong about all three. **Code is the current state; a knowledge bundle is the constraints around it.** Git versions the first perfectly. OKF lets you version the second in the same PR.
+
+## Step 1: Scope it small, keep it in the repo
+
+Don't start with "document the platform." Start where the postmortems point.
+
+```
+knowledge/
+├── index.md
+├── log.md
+├── packages/
+│   ├── index.md
+│   ├── survey-editor.md
+│   ├── logic-engine.md
+│   └── embed-sdk.md
+├── question-types/
+│   ├── index.md
+│   └── matrix-v1.md
+├── contracts/
+│   └── response-shape-v4.md
+├── integrations/
+│   └── webhook-delivery.md
+└── gotchas/
+    └── question-id-stability.md
+```
+
+`type` values are producer-defined, so use words your team already says: `Package`, `Question Type`, `Contract`, `Integration`, `Gotcha`, `ADR`, `Deprecation`.
+
+## Step 2: Write the first concept
+
+`knowledge/packages/logic-engine.md`:
+
+```markdown
+---
+type: Package
+title: "@survey/logic-engine"
+description: Evaluates branching, skip logic, and piping. Runs in both browser and Node.
+resource: https://git.example.com/survey/tree/main/packages/logic-engine
+tags: [tier-1, isomorphic, shared]
+timestamp: 2026-09-05T10:05:00Z
+---
+
+# Ownership
+
+Team: Survey Runtime. Rotation: `#runtime-oncall`.
+Consumed by [survey-editor](/packages/survey-editor.md) (live preview),
+[embed-sdk](/packages/embed-sdk.md) (respondent runtime), and `response-api`
+(server-side validation).
+
+# Boundaries
+
+Owns: rule evaluation, page visibility, answer piping, quota checks.
+Does **not** own: rendering (that's the editor and SDK) or persistence.
+
+The engine must be **pure and deterministic**. No `Date.now()`, no `Math.random()`,
+no `fetch`, no `window`. Time and randomization are injected via the context
+object, because the server replays evaluation on submit and must reach the same
+verdict the browser did.
+
+# Change risk
+
+This is the most dangerous package in the repo. It ships in three places on
+three release cadences: the editor deploys continuously, the API deploys daily,
+and the SDK is **pinned by customers, possibly for years**.
+
+A rule type added here is only safe if old evaluators treat it as
+"always visible." Anything that makes an old evaluator throw or hide a page
+means a respondent sees a question the server will reject on submit — a silent
+mid-survey dead end with no error surface.
+
+| Changing... | Safe? |
+|---|---|
+| Adding an optional field to a rule | Yes |
+| Adding a new operator | Only with a fallback branch in v-1 |
+| Changing operator semantics | No. Add a new operator instead. |
+| Tightening validation | No. Old drafts contain invalid rules. |
+
+# Testing
+
+`pnpm test:parity` runs the same fixture set through the browser build and the
+Node build and diffs the verdicts. If you touch evaluation, that suite is not
+optional. It has caught four production incidents; do not `--skip` it.
+```
+
+That "Change risk" table isn't documentation — it's a **guardrail**. It's what a staff engineer would type into a PR review, written down once, where a human reviewer and an agent both hit it before writing code.
+
+## Step 3: The highest-ROI concept type is the one that says "don't"
+
+If you write only one concept this quarter, write this one. Negative knowledge is invisible in the code and expensive when missed.
+
+`knowledge/question-types/matrix-v1.md`:
+
+```markdown
+---
+type: Question Type
+title: Matrix v1
+description: Retired from the editor in 2023. Renderer is NOT removable — historical responses depend on it.
+resource: https://git.example.com/survey/tree/main/packages/renderers/MatrixV1.tsx
+tags: [do-not-remove, legacy, read-path-only]
+timestamp: 2026-08-31T14:10:00Z
+---
+
+# Status
+
+**Write path closed, read path permanently open.** The editor hasn't offered
+Matrix v1 since 2023-04, so no new questions use it. Static analysis therefore
+reports the renderer as unreachable. It isn't.
+
+~900k stored responses hold answers in the v1 shape (`{rows: {[rowId]: colId}}`,
+a flat map) rather than the v2 shape (`{rows: [{rowId, colId, weight}]}`).
+Three read paths still hydrate that shape:
+
+- PDF/XLSX export (`packages/export`)
+- The report builder's crosstab widget
+- The public results-share page
+
+# What we already tried
+
+- 2025-Q3: deleted the renderer after the bundle analyzer flagged it. Exports
+  rendered blank matrix cells for ~2 weeks before a customer reported it.
+  No error was thrown — the renderer registry falls back to `null`. Reverted
+  in `e91c04d`.
+- 2026-Q1: wrote a v1→v2 backfill migration. Abandoned: weights are not
+  recoverable from the v1 shape, so migrating silently changes historical
+  crosstab numbers. Finance and legal both objected. See CLM-8802.
+
+# Removal criteria
+
+Removable only when the renderer registry throws loudly on unknown types
+*and* no response older than the retention window uses the v1 shape:
+
+```sql
+SELECT count(*) FROM responses
+WHERE answers @> '[{"type":"matrix_v1"}]' AND created_at > now() - interval '7 years';
+```
+
+Must return 0. It currently returns ~412k.
+```
+
+"What we already tried" is the section every wiki lacks and every team needs. It's the difference between an agent making a fresh mistake and an agent re-enacting last year's incident.
+
+## Step 4: Let the links carry the graph
+
+OKF links are deliberately dumb: a markdown link asserts *these two are related*, and the prose says how. Don't fight it — write the relationship into the sentence:
+
+```markdown
+Question IDs are minted by [survey-editor](/packages/survey-editor.md) and
+treated as immutable by [webhook-delivery](/integrations/webhook-delivery.md),
+because customer ETL jobs key on them. Read
+[question-id-stability](/gotchas/question-id-stability.md) before any change
+that regenerates IDs — including "harmless" duplicate-survey refactors.
+```
+
+Prefer bundle-absolute links (`/packages/embed-sdk.md`) over relative ones. You'll reorganize the tree eventually, and absolute links survive `git mv` far better.
+
+<OkfBundleGraph />
+
+Five files, but already a graph with a load-bearing node: `matrix-v1` has three inbound edges from read paths that never show up in a dependency graph derived from imports, because none of them import the renderer directly — they go through a registry lookup keyed by a string. That's precisely the edge static analysis cannot draw and a markdown link can.
+
+## Step 5: `index.md` is a token budget, not a table of contents
+
+Teams skip this, then wonder why their agent burns 40k tokens reaching one answer. `index.md` is for progressive disclosure: read the index, decide where to go, never load the other sixty files.
+
+`knowledge/packages/index.md`:
+
+```markdown
+# Packages
+
+| Concept | Consumers | Read this before |
+|---------|-----------|------------------|
+| [logic-engine](/packages/logic-engine.md) | editor, sdk, api | any change to rule evaluation |
+| [embed-sdk](/packages/embed-sdk.md) | customer sites (unpinned) | changing *any* public export |
+| [survey-editor](/packages/survey-editor.md) | web app | touching question ID generation |
+| [renderers](/packages/renderers.md) | editor, sdk, export | deleting a "dead" question type |
+```
+
+That last column does the real work: it's a routing hint, so a consumer can pick the right file from the index alone.
+
+## Step 6: Produce concepts from the repo; don't hand-write four hundred
+
+The format is minimal enough that scaffolding is a short script. Since the platform is JS, write the producer in JS — walk the pnpm workspace, pull what's already machine-readable, and emit stubs for humans and agents to enrich:
+
+```js
+#!/usr/bin/env node
+// tools/scaffold-okf.mjs — generate OKF Package concepts from a pnpm workspace.
+import { readFile, writeFile, mkdir, readdir, access } from "node:fs/promises";
+import path from "node:path";
+
+const ROOT = "packages";
+const OUT = "knowledge/packages";
+const NOW = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+
+const exists = async (p) => access(p).then(() => true, () => false);
+
+const codeowners = (await readFile("CODEOWNERS", "utf8"))
+  .split("\n")
+  .filter((l) => l.trim() && !l.startsWith("#"))
+  .map((l) => l.trim().split(/\s+/))
+  .map(([pattern, ...owners]) => ({ pattern: pattern.replace(/^\/|\/$/g, ""), owner: owners.join(" ") }));
+
+const ownerFor = (dir) =>
+  [...codeowners].reverse().find((c) => dir.startsWith(c.pattern))?.owner ?? "UNOWNED";
+
+await mkdir(OUT, { recursive: true });
+
+for (const entry of await readdir(ROOT, { withFileTypes: true })) {
+  if (!entry.isDirectory()) continue;
+  const dir = path.join(ROOT, entry.name);
+  const target = path.join(OUT, `${entry.name}.md`);
+
+  if (await exists(target)) continue;            // never clobber curated knowledge
+  if (!(await exists(path.join(dir, "package.json")))) continue;
+
+  const pkg = JSON.parse(await readFile(path.join(dir, "package.json"), "utf8"));
+  const internal = Object.entries({ ...pkg.dependencies, ...pkg.peerDependencies })
+    .filter(([, range]) => String(range).startsWith("workspace:"))
+    .map(([name]) => name.replace(/^@survey\//, ""))
+    .sort();
+
+  const published = pkg.private !== true;
+  const exportsPublic = Object.keys(pkg.exports ?? {});
+
+  const front = [
+    "---",
+    "type: Package",
+    `title: "${pkg.name}"`,
+    `description: ${pkg.description ?? "TODO: one line on what this owns."}`,
+    `resource: https://git.example.com/survey/tree/main/${dir}`,
+    `tags: [scaffolded${published ? ", published" : ""}]`,
+    `timestamp: ${NOW}`,
+    "---",
+  ];
+
+  const body = ["", "# Ownership", "", `Team: ${ownerFor(dir)}`, ""];
+  if (internal.length) {
+    body.push("# Depends on (internal)", "", ...internal.map((d) => `- [${d}](/packages/${d}.md)`), "");
+  }
+  if (published) {
+    body.push(
+      "# Public surface",
+      "",
+      `Published to npm as \`${pkg.name}\` — consumers may pin old versions indefinitely.`,
+      exportsPublic.length ? `Entry points: ${exportsPublic.map((e) => `\`${e}\``).join(", ")}` : "",
+      ""
+    );
+  }
+  body.push("# Change risk", "", "TODO: what breaks when this changes?");
+
+  await writeFile(target, [...front, ...body].join("\n") + "\n");
+  console.log(`wrote ${target}`);
+}
+```
+
+<Callout type="do" title="Two rules keep this from becoming a spam generator">
+Never overwrite an existing file, and leave visible `TODO`s. A scaffolded concept with `TODO` in it is honest. One that reads like finished documentation is worse than nothing.
+</Callout>
+
+Note the small piece of real inference in there: `private !== true` plus a `workspace:` dependency scan tells you which packages are publicly published and which are internal — exactly the distinction that determines whether removing an export is safe. Cheap to derive, and it's the fact an agent most needs.
+
+## Step 7: Make CI stop the rot
+
+Knowledge bundles decay like test suites — silently, then all at once.
+
+```yaml
+# .github/workflows/knowledge.yml
+name: knowledge
+on: [pull_request]
+jobs:
+  okf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - name: Conformance + hygiene
+        run: |
+          # 1. every concept has a non-empty `type` (the one hard requirement)
+          # 2. no broken bundle-relative links
+          # 3. no tier-1 concept with a timestamp older than 180 days
+          node tools/okf-check.mjs knowledge/
+      - name: Nudge on coupled changes
+        run: |
+          CHANGED=$(git diff --name-only origin/main...)
+          if echo "$CHANGED" | grep -q '^packages/logic-engine/'; then
+            echo "$CHANGED" | grep -q '^knowledge/packages/logic-engine.md' \
+              || echo "::warning::logic-engine changed; consider updating its concept"
+          fi
+```
+
+<Callout type="dont" title="Don't block merges on this">
+Blocking merges on documentation trains engineers to make one-character "updated docs" diffs. A nudge plus a visible staleness date in review captures most of the value the coupled-change check is worth — save the hard failure for the one field OKF actually requires (`type`) and for broken links.
+</Callout>
+
+There's already a small ecosystem forming — a Python linter and MCP server (`okft`), a zero-dependency Rust implementation, a PHP parser — which is what you'd hope for from a format whose worth is measured in how many things speak it.
+
+## Step 8: Wire up the consumer side
+
+A bundle nobody reads is a filing cabinet. Two patterns work:
+
+**Point your agent's convention file at the bundle** instead of duplicating knowledge into it. In `AGENTS.md` / `CLAUDE.md`:
+
+```markdown
+Before modifying anything under `packages/`, read the matching concept in
+`knowledge/packages/`. Before deleting a renderer, question type, or "unused"
+export, check `knowledge/question-types/index.md` — several types are retired
+from the write path but required on the read path. Never assume coverage or
+bundle-analyzer output proves code is dead. Log material changes to
+`knowledge/log.md`.
+```
+
+**Serve the bundle over MCP** for agents outside the repo. Navigation is deterministic graph traversal — read the index, follow a link, read a concept — so you get grounded answers with no vector database. Nothing to re-embed, no retrieval tuning, and every citation is a file path a human can open and verify.
+
+<OkfLifecycle />
+
+That's the whole loop, and it only pays for itself if all four boxes actually fire on the same pull request. A concept nobody reads is exactly as useless as one nobody wrote.
+
+## Outcomes: what three months of this actually looked like
+
+This is the part most OKF write-ups skip, so here's what changed on the running example above, honestly — including the part that didn't work as planned.
+
+**The scaffold overshot, on purpose, and got pruned back.** Running `scaffold-okf.mjs` against the workspace produced 190 stub `Package` concepts on day one — one per directory with a `package.json`. Within a month, roughly 140 of those were merged or deleted: most internal packages didn't carry enough independent change risk to justify their own file, so teams folded them into a parent concept (`packages/logic-engine.md` absorbed three tiny helper packages that only it imports). The bundle settled at **~50 curated concepts**. The lesson: scaffold generously, then let usage — not the workspace layout — decide the final granularity.
+
+**The Matrix v1 story repeated, with a different ending.** In the following quarter, the bundle analyzer flagged `MatrixV1.tsx` again — the tool has no memory of the last incident, so of course it did. This time, the PR touched `packages/renderers/`, the CI nudge fired because `knowledge/question-types/matrix-v1.md` wasn't in the diff, and the reviewer opened it, saw the "Removal criteria" query still returning ~380k rows, and closed the PR same-day with a link back to the concept. First time: ~2 weeks to catch in production, one customer report, one revert commit. Second time: caught in review, zero customer impact.
+
+**The agent stopped proposing the deletion in the first place.** With `CLAUDE.md` pointing at the bundle, asking the coding agent to "clean up dead renderers" no longer surfaced `MatrixV1.tsx` as a candidate at all — it read `question-types/index.md`, hit the `do-not-remove` tag, and reported it as excluded rather than silently skipping it, which mattered for trust: a reviewer could see *why* it was excluded instead of wondering if the agent missed it.
+
+| Metric | Before | After one quarter |
+|---|---|---|
+| Concepts in the bundle | 0 | ~50 (curated, down from 190 scaffolded) |
+| Time to catch a "safe" deletion that wasn't | ~2 weeks, via customer report | Same day, in review |
+| CI nudge fire rate on `packages/*` PRs | n/a | ~18% of PRs touching tier-1 packages |
+| Nudge → concept actually updated | n/a | ~65% (a warning, not a gate — the rest is the honest cost) |
+| Agent proposing removal of a flagged renderer | Yes (no memory of prior incident) | No (reads the tag before proposing) |
+
+That 65% isn't a failure — it's the number a nudge-not-a-gate should produce, and it's exactly why the "Removal criteria" SQL query and the staleness check in CI matter more than the nudge itself: they're what catches the other 35% before someone trusts a stale concept.
+
+<Callout type="reference" title="Where this doesn't pay for itself">
+The packages that got folded back into a parent concept had a common shape: internal-only, single-consumer, low change risk. If nothing about a package would surprise its one consumer, a standalone concept is overhead. OKF's cost is proportional to bundle size, and the ROI is proportional to how expensive a wrong assumption about that piece of code would be — scope accordingly, and expect to prune.
+</Callout>
+
+## What *not* to put in a bundle
+
+- **Anything the code states better.** Don't mirror type definitions; they drift, and you'll trust the stale copy. Link to the `.d.ts` instead.
+- **Secrets, tokens, customer data.** Bundles are built to be portable — assume yours gets tarballed and shared.
+- **Ticket-level churn.** Concepts hold durable constraints, not sprint status. Your tracker does that.
+- **Prose where a table works.** Skimming humans and agents both do better with the table.
+
+---
+
+The bet OKF makes is that storage was never the hard part. The hard part was that every team built a slightly different box, so nothing could move between them. Plain markdown in git isn't a clever answer — that's the point. It has the fewest ways to fail, and your agents can read it today with no integration at all.
+
+Start with the renderer nobody has used since 2023. It'll pay for itself the first time someone doesn't delete it.

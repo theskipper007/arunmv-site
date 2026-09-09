@@ -1,0 +1,50 @@
+<svg viewBox="0 0 680 370" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>The renderer nobody has used since 2023</title>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.9" fill="#ffffff" opacity="0.03"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2E8B57" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#2E8B57" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="370" fill="#0a0d12"/>
+  <rect width="680" height="370" fill="url(#dots)"/>
+  <ellipse cx="530" cy="185" rx="205" ry="175" fill="url(#glow)"/>
+
+  <!-- bundle graph: markdown files linked into a directory-shaped graph -->
+  <g stroke="#2E8B57" stroke-width="1" opacity="0.35" fill="none">
+    <line x1="530" y1="185" x2="452" y2="120"/>
+    <line x1="530" y1="185" x2="612" y2="110"/>
+    <line x1="530" y1="185" x2="608" y2="250"/>
+    <line x1="530" y1="185" x2="446" y2="240"/>
+    <line x1="452" y1="120" x2="612" y2="110"/>
+  </g>
+  <g fill="#0a0d12" stroke="#2E8B57" stroke-width="1.4">
+    <circle cx="452" cy="120" r="7"/>
+    <circle cx="612" cy="110" r="6"/>
+    <circle cx="446" cy="240" r="6"/>
+  </g>
+  <!-- the flagged node: the renderer that isn't removable -->
+  <circle cx="608" cy="250" r="9" fill="#0a0d12" stroke="#C2402F" stroke-width="1.8"/>
+  <g stroke="#C2402F" stroke-width="1.6" stroke-linecap="round">
+    <path d="M604 246 L612 254 M612 246 L604 254"/>
+  </g>
+  <text x="608" y="270" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="9" font-weight="700" fill="#C2402F" opacity="0.9">do-not-remove</text>
+
+  <circle cx="530" cy="185" r="15" fill="#2E8B57" opacity="0.5" filter="url(#blur)"/>
+  <circle cx="530" cy="185" r="9" fill="#2E8B57"/>
+
+  <!-- text -->
+  <text x="56" y="90" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="0.16em" fill="#2E8B57">OKF · PRACTICAL GUIDE</text>
+  <text x="55" y="146" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="34" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">The Renderer</text>
+  <text x="55" y="186" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="34" font-weight="700" letter-spacing="-0.02em" fill="#f2f5f7">Nobody Has Used</text>
+  <text x="55" y="226" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="700" letter-spacing="-0.01em" fill="#2E8B57">Since 2023</text>
+  <line x1="56" y1="246" x2="200" y2="246" stroke="#2E8B57" stroke-width="2" opacity="0.7"/>
+  <text x="56" y="312" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#3a4049">Markdown in git, one required field, and a graph your agent can actually traverse</text>
+</svg>

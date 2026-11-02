@@ -1,5 +1,5 @@
 ---
-import { Search } from "@lucide/astro";
+import { Mail, Search } from "@lucide/astro";
 import { NAV } from "../../lib/seo";
 import ThemeToggle from "../ui/ThemeToggle.tsx";
 import CommandPalette from "../ui/CommandPalette.tsx";
@@ -52,6 +52,15 @@ const isActive = (href: string) => pathname === href || pathname.startsWith(href
         >
       </button>
       <ThemeToggle client:load />
+      <button
+        type="button"
+        data-open-subscribe
+        class="ml-1 inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-pill)] border border-accent/45 bg-accent/10 px-3 text-sm font-medium text-accent transition-colors hover:border-accent hover:bg-accent hover:text-paper sm:px-3.5"
+        aria-label="Subscribe to the newsletter"
+      >
+        <Mail size={15} stroke-width={1.8} />
+        <span class="hidden sm:inline">Subscribe</span>
+      </button>
       <MobileNav client:idle />
     </div>
   </div>

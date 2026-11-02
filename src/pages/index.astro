@@ -9,6 +9,8 @@ import BuildInProgress from "../components/content/BuildInProgress.astro";
 import GithubIcon from "../components/ui/icons/GithubIcon.astro";
 import { SITE } from "../lib/seo";
 import TypeTag from "../components/content/TypeTag.astro";
+import NewsletterBand from "../components/newsletter/NewsletterBand.astro";
+import { Mail } from "@lucide/astro";
 import { getPublishedPosts, formatDate, readingMinutes } from "../lib/collections";
 
 const posts = await getPublishedPosts();
@@ -54,6 +56,13 @@ const lab = posts.filter((p) => LAB_TYPES.includes(p.data.type)).slice(0, 3);
         >
           Read the writing <ArrowRight size={16} stroke-width={2} />
         </a>
+        <button
+          type="button"
+          data-open-subscribe
+          class="inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-ink"
+        >
+          <Mail size={17} stroke-width={1.5} /> Get new posts by email
+        </button>
         <a
           href={SITE.github}
           target="_blank"
@@ -146,6 +155,11 @@ const lab = posts.filter((p) => LAB_TYPES.includes(p.data.type)).slice(0, 3);
         compact
       />
     </div>
+  </section>
+
+  {/* ── Newsletter ──────────────────────────────────────────────────── */}
+  <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
+    <NewsletterBand />
   </section>
 
   {/* ── About preview ───────────────────────────────────────────────── */}

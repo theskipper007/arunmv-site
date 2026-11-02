@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+.vercel
+.env*
+
+# LinkedIn drafts from /research-post
+drafts/

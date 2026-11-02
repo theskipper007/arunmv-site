@@ -8,6 +8,7 @@ import { ClientRouter } from "astro:transitions";
 import SiteHeader from "../components/layout/SiteHeader.astro";
 import Footer from "../components/layout/Footer.astro";
 import SEOHead from "../components/seo/SEOHead.astro";
+import SubscribeDialog from "../components/newsletter/SubscribeDialog.astro";
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 
@@ -66,6 +67,7 @@ const props = Astro.props;
       <slot />
     </main>
     <Footer />
+    <SubscribeDialog />
     <Analytics />
     <SpeedInsights />
 

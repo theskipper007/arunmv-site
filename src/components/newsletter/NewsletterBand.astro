@@ -1,0 +1,77 @@
+---
+import SubscribeForm from "./SubscribeForm.astro";
+
+interface Props {
+  /** "band" for the home page, "post" for the end of an article. */
+  variant?: "band" | "post";
+  /** Force a single column (for narrow containers like the /newsletter page). */
+  stacked?: boolean;
+}
+const { variant = "band", stacked = false } = Astro.props;
+---
+
+<section
+  class:list={["nl-band", (variant === "post" || stacked) && "nl-band--stacked", variant === "post" && "nl-band--post"]}
+  aria-labelledby={`nl-band-${variant}`}
+>
+  <div>
+    <p class="font-mono text-xs uppercase tracking-widest text-faint">Newsletter</p>
+    <h2 id={`nl-band-${variant}`} class="nl-band-h">
+      {variant === "post" ? "Get the next post by email" : "Get new posts by email"}
+    </h2>
+    <p class="mt-2 text-muted">
+      Experiments, explainers and build logs when they publish. Choose technical posts only, or
+      everything.
+    </p>
+  </div>
+  <SubscribeForm />
+</section>
+
+<style>
+  .nl-band {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    gap: 1.25rem 2.5rem;
+    padding: 2rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    font-family: var(--font-sans);
+  }
+  .nl-band::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      50% 80% at 0% 0%,
+      color-mix(in oklab, var(--color-accent) 9%, transparent),
+      transparent 70%
+    );
+  }
+  @media (min-width: 860px) {
+    .nl-band:not(.nl-band--stacked) {
+      grid-template-columns: 1fr 1.05fr;
+      align-items: center;
+      padding: 2.5rem;
+    }
+  }
+  .nl-band--post {
+    margin-top: 2.5rem;
+    padding: 1.5rem;
+  }
+  .nl-band-h {
+    margin-top: 0.5rem;
+    font-family: var(--font-serif);
+    font-size: clamp(1.4rem, 1.15rem + 0.9vw, 1.85rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+  .nl-band--post .nl-band-h {
+    font-size: 1.35rem;
+  }
+</style>

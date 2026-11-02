@@ -10,6 +10,7 @@ import TypeTag from "../components/content/TypeTag.astro";
 import ResultCard from "../components/content/ResultCard.astro";
 import AgeBanner from "../components/content/AgeBanner.astro";
 import PostEndMatter from "../components/content/PostEndMatter.astro";
+import NewsletterBand from "../components/newsletter/NewsletterBand.astro";
 import TableOfContents from "../components/content/TableOfContents.tsx";
 import ReadingProgress from "../components/content/ReadingProgress.tsx";
 import type { Heading } from "../components/content/TableOfContents.tsx";
@@ -163,6 +164,8 @@ const citation = research
             {tags.map((tag) => <Tag tag={tag} />)}
           </div>
         </article>
+
+        <NewsletterBand variant="post" />
 
         <RelatedPosts posts={related} />
       </div>

@@ -29,11 +29,13 @@ const socials = [
     <nav aria-label="Footer" class="flex flex-col gap-3 sm:items-end">
       <div class="flex gap-4 text-sm">
         {
-          NAV.map((item) => (
-            <a href={item.href} class="text-muted no-underline hover:text-ink">
-              {item.label}
-            </a>
-          ))
+          [...NAV, { label: "Newsletter", href: "/newsletter" }, { label: "RSS", href: "/rss.xml" }].map(
+            (item) => (
+              <a href={item.href} class="text-muted no-underline hover:text-ink">
+                {item.label}
+              </a>
+            ),
+          )
         }
       </div>
       <div class="flex items-center gap-3">

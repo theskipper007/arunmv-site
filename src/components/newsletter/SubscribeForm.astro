@@ -1,0 +1,156 @@
+---
+/**
+ * Newsletter signup form. Posts to /api/subscribe as a normal form (works
+ * without JS); the script upgrades it to an in-place submit with status text.
+ */
+interface Props {
+  /** Shorter fine print for the header dialog. */
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+const id = `nl-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+{/* data-astro-reload keeps the ClientRouter from hijacking the POST; the script below enhances it instead. */}
+<form class="nl-form" method="post" action="/api/subscribe" novalidate data-nl-form data-astro-reload>
+  <div class="nl-line">
+    <label for={`${id}-email`} class="sr-only">Email address</label>
+    <input
+      id={`${id}-email`}
+      type="email"
+      name="email"
+      required
+      autocomplete="email"
+      placeholder="you@example.com"
+      class="nl-input"
+    />
+    <button
+      type="submit"
+      class="inline-flex h-[46px] items-center justify-center rounded-[var(--radius-pill)] bg-ink px-6 text-sm font-medium text-paper transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+    >
+      Subscribe
+    </button>
+  </div>
+  <fieldset class="nl-opts">
+    <legend class="sr-only">What to receive</legend>
+    <label><input type="radio" name="list" value="technical" checked /> Technical posts</label>
+    <label><input type="radio" name="list" value="all" /> Everything, incl. personal</label>
+  </fieldset>
+  <label class="nl-hp" aria-hidden="true">
+    Leave this empty <input type="text" name="company" tabindex="-1" autocomplete="off" />
+  </label>
+  <p class="nl-msg" role="status" aria-live="polite"></p>
+  {
+    !compact && (
+      <p class="text-xs text-faint">
+        One email per new post. Confirm once, unsubscribe from any email.
+      </p>
+    )
+  }
+</form>
+
+<style>
+  .nl-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+  .nl-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .nl-input {
+    flex: 1 1 13rem;
+    min-width: 0;
+    height: 46px;
+    padding: 0 1rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 18%, transparent);
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-size: 0.95rem;
+  }
+  .nl-input:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+    border-color: transparent;
+  }
+  .nl-opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+  .nl-opts label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+  }
+  .nl-opts input {
+    accent-color: var(--color-accent);
+  }
+  .nl-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .nl-msg {
+    min-height: 1.3em;
+    font-size: 0.85rem;
+  }
+  .nl-msg[data-state="error"] {
+    color: #c2402f;
+  }
+  .nl-msg[data-state="ok"] {
+    color: #2e8b57;
+  }
+</style>
+
+<script>
+  // One delegated listener survives View Transitions and covers every form on the page.
+  document.addEventListener("submit", async (e) => {
+    const form = (e.target as HTMLElement).closest<HTMLFormElement>("[data-nl-form]");
+    if (!form) return;
+    e.preventDefault();
+    const msg = form.querySelector<HTMLElement>(".nl-msg")!;
+    const btn = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
+    const email = form.querySelector<HTMLInputElement>("input[name=email]")!;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
+      msg.dataset.state = "error";
+      msg.textContent = "That doesn't look like an email address. Check it and try again.";
+      email.focus();
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Subscribing…";
+    msg.textContent = "";
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" },
+      });
+      const data = (await res.json()) as { ok: boolean; message: string };
+      msg.dataset.state = data.ok ? "ok" : "error";
+      msg.textContent = data.message;
+      if (data.ok) email.value = "";
+    } catch {
+      msg.dataset.state = "error";
+      msg.textContent = "Couldn't reach the server. Check your connection and try again.";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Subscribe";
+    }
+  });
+</script>

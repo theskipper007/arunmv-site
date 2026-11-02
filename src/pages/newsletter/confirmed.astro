@@ -1,0 +1,52 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+
+// Static page; /api/confirm redirects here with ?status=ok|expired|invalid|error.
+const STATES = {
+  ok: {
+    title: "You're subscribed",
+    body: "Thanks for confirming. The next post will land in your inbox.",
+  },
+  expired: {
+    title: "That link has expired",
+    body: "Confirm links work for 48 hours. Subscribe again and you'll get a fresh one.",
+  },
+  invalid: {
+    title: "That link doesn't work",
+    body: "It may have been cut off or edited. Subscribe again and you'll get a fresh one.",
+  },
+  error: {
+    title: "Something went wrong on my side",
+    body: "Your link is fine, but saving the subscription failed. Click the link in your email again in a minute.",
+  },
+};
+---
+
+<PageLayout title="Newsletter" description="Newsletter subscription status." prose noindex>
+  <p class="font-mono text-xs uppercase tracking-widest text-faint">Newsletter</p>
+  {
+    Object.entries(STATES).map(([key, s]) => (
+      <div data-state={key} hidden={key !== "ok"}>
+        <h1 class="mt-3 font-serif text-4xl font-semibold tracking-tight text-ink">{s.title}</h1>
+        <p class="mt-4 text-lg text-muted">{s.body}</p>
+        {key !== "ok" && key !== "error" && (
+          <p class="mt-6">
+            <a href="/newsletter">Subscribe again →</a>
+          </p>
+        )}
+      </div>
+    ))
+  }
+  <p class="mt-8"><a href="/blog">Read the writing →</a></p>
+</PageLayout>
+
+<script>
+  function showState() {
+    const status = new URL(location.href).searchParams.get("status") ?? "ok";
+    const blocks = document.querySelectorAll<HTMLElement>("[data-state]");
+    const known = [...blocks].some((b) => b.dataset.state === status);
+    blocks.forEach((b) => (b.hidden = b.dataset.state !== (known ? status : "invalid")));
+  }
+  showState();
+  document.addEventListener("astro:page-load", showState);
+</script>

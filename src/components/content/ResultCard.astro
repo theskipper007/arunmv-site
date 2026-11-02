@@ -1,0 +1,115 @@
+---
+import type { Post } from "../../lib/collections";
+
+/**
+ * Headline result for experiment-like posts: claim · setup · result · resolution,
+ * plus a reproducibility row when `repro` is set. Rendered from frontmatter.
+ */
+interface Props {
+  result: NonNullable<Post["data"]["result"]>;
+  repro?: Post["data"]["repro"];
+}
+const { result, repro } = Astro.props;
+
+const chips = repro
+  ? [
+      { label: "code", value: repro.code, href: repro.code },
+      { label: "data", value: repro.data, href: repro.data?.startsWith("http") ? repro.data : undefined },
+      { label: "seeds", value: repro.seeds },
+      { label: "config", value: repro.config },
+      { label: "rerun", value: repro.rerun },
+    ].filter((c) => c.value)
+  : [];
+---
+
+<div class="mt-8">
+  <dl class="result-card">
+    <div>
+      <dt>Claim</dt>
+      <dd>{result.claim}</dd>
+    </div>
+    <div>
+      <dt>Setup</dt>
+      <dd>{result.setup}</dd>
+    </div>
+    <div>
+      <dt>Result</dt>
+      <dd>
+        <span class="result-big">{result.headline}</span>
+        {result.detail && <span class="mt-1 block text-muted">{result.detail}</span>}
+      </dd>
+    </div>
+    {
+      result.resolution && (
+        <div>
+          <dt>Resolution</dt>
+          <dd class="font-mono text-[0.85rem]">{result.resolution}</dd>
+        </div>
+      )
+    }
+  </dl>
+  {
+    chips.length > 0 && (
+      <div class="mt-3 flex flex-wrap gap-1.5" aria-label="Reproducibility">
+        {chips.map((c) =>
+          c.href ? (
+            <a href={c.href} target="_blank" rel="noopener" class="repro-chip no-underline">
+              ✓ {c.label}
+            </a>
+          ) : (
+            <span class="repro-chip" title={c.value}>
+              ✓ {c.label}
+            </span>
+          ),
+        )}
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .result-card {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+  .result-card > div {
+    padding: 0.9rem 1rem;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    margin: 0 -1px -1px 0;
+  }
+  dt {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-faint);
+  }
+  dd {
+    margin: 0.3rem 0 0;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--color-ink);
+  }
+  .result-big {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  .repro-chip {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-pill);
+    color: #2e8b57;
+    border: 1px solid color-mix(in oklab, #2e8b57 35%, transparent);
+    background: color-mix(in oklab, #2e8b57 7%, transparent);
+  }
+</style>

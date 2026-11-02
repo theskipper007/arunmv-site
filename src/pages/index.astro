@@ -8,11 +8,15 @@ import AboutPreview from "../components/content/AboutPreview.astro";
 import BuildInProgress from "../components/content/BuildInProgress.astro";
 import GithubIcon from "../components/ui/icons/GithubIcon.astro";
 import { SITE } from "../lib/seo";
-import { getPublishedPosts } from "../lib/collections";
+import TypeTag from "../components/content/TypeTag.astro";
+import { getPublishedPosts, formatDate, readingMinutes } from "../lib/collections";
 
 const posts = await getPublishedPosts();
 const featured = posts.find((p) => p.data.featured) ?? posts[0];
 const recent = posts.filter((p) => p.id !== featured?.id).slice(0, 4);
+// Experiment-like posts get their own row, led by the headline result.
+const LAB_TYPES = ["experiment", "benchmark", "ablation", "reproduction", "trendtest"];
+const lab = posts.filter((p) => LAB_TYPES.includes(p.data.type)).slice(0, 3);
 ---
 
 <BaseLayout>
@@ -34,20 +38,21 @@ const recent = posts.filter((p) => p.id !== featured?.id).slice(0, 4);
         class="font-sans font-bold tracking-tight text-ink"
         style="font-size: clamp(2rem, 5.5vw, 3.75rem); line-height: 1.05;"
       >
-        I build <span class="text-accent">intelligence</span><br />and solve
-        <span class="text-accent">real-world problems.</span>
+        I'm an AI engineer who builds <span class="text-accent">production LLM systems</span> and
+        studies <span class="text-accent">why they fail.</span>
       </h1>
       <p class="mt-7 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl">
-        Senior AI Engineer bridging the chasm between theoretical research and production
-        systems. Specializing in <strong class="font-semibold text-ink">Agentic Solutions</strong>
-        and <strong class="font-semibold text-ink">Retrieval-Augmented Generation</strong>.
+        I take ideas from AI research and make them hold up in production, mostly
+        <strong class="font-semibold text-ink">agents</strong> and
+        <strong class="font-semibold text-ink">retrieval</strong>. Here I write up what I build and
+        test, with the code and data so you can check every number.
       </p>
       <div class="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
         <a
-          href="/projects"
+          href="/blog"
           class="inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-ink px-6 py-3 text-sm font-medium text-paper no-underline transition-transform hover:-translate-y-0.5"
         >
-          View Case Studies <ArrowRight size={16} stroke-width={2} />
+          Read the writing <ArrowRight size={16} stroke-width={2} />
         </a>
         <a
           href={SITE.github}
@@ -85,6 +90,46 @@ const recent = posts.filter((p) => p.id !== featured?.id).slice(0, 4);
     }
     {!featured && <p class="mt-5 py-8 text-faint">No posts yet.</p>}
   </section>
+
+  {/* ── Experiments & benchmarks: research posts, led by their result ── */}
+  {
+    lab.length > 0 && (
+      <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
+        <div class="flex items-baseline justify-between">
+          <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Experiments &amp; benchmarks</h2>
+          <a href="/blog?type=experiment" class="font-mono text-xs text-muted no-underline hover:text-accent">
+            all →
+          </a>
+        </div>
+        <div class="reveal mt-5 grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));">
+          {lab.map((post) => (
+            <article class="group relative flex flex-col gap-2.5 rounded-[var(--radius-lg)] border border-border bg-surface p-5 transition-colors hover:border-accent/40">
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <TypeTag type={post.data.type} />
+                <span class="font-mono text-xs text-faint">
+                  {formatDate(post.data.pubDate)} · {readingMinutes(post)} min
+                </span>
+              </div>
+              <h3 class="text-lg font-semibold leading-snug tracking-tight">
+                <a
+                  href={`/blog/${post.id}`}
+                  class="text-ink no-underline transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-accent"
+                >
+                  {post.data.title}
+                </a>
+              </h3>
+              {post.data.result && (
+                <p class="border-l-2 border-accent pl-2.5 font-mono text-[0.78rem] leading-snug text-ink">
+                  {post.data.result.headline}
+                  {post.data.result.detail && <span class="text-muted"> · {post.data.result.detail}</span>}
+                </p>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   {/* ── Selected work ───────────────────────────────────────────────── */}
   <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
@@ -186,6 +231,9 @@ const recent = posts.filter((p) => p.id !== featured?.id).slice(0, 4);
   .hero-band {
     position: relative;
     isolation: isolate;
+    /* The aurora bleeds 15% past each side; clip it horizontally so the page
+     * never scrolls sideways, while still letting it glow down into the page. */
+    overflow-x: clip;
   }
   .hero-band::before {
     content: "";

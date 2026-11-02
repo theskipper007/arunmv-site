@@ -3,27 +3,62 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import CategoryNav from "../../components/content/CategoryNav.astro";
 import FeaturedHero from "../../components/content/FeaturedHero.astro";
 import PostCard from "../../components/content/PostCard.astro";
-import Pagination from "../../components/content/Pagination.astro";
-import { getPublishedPosts } from "../../lib/collections";
+import WritingIndex from "../../components/content/WritingIndex.tsx";
+import {
+  getPublishedPosts,
+  postsByTopic,
+  categoryLabel,
+  TOPIC_ORDER,
+  TOPICS,
+  POST_TYPES,
+  type PostType,
+} from "../../lib/collections";
 
-const PAGE_SIZE = 12;
+// Subsections show this many cards, then link to the full topic page.
+const PER_TOPIC = 6;
+
 const posts = await getPublishedPosts();
 const featured = posts.find((p) => p.data.featured) ?? null;
-const listed = posts.filter((p) => !p.data.featured);
-const pageItems = listed.slice(0, PAGE_SIZE);
-const lastPage = Math.max(1, Math.ceil(listed.length / PAGE_SIZE));
+const listed = posts.filter((p) => p.id !== featured?.id);
+
+// Category → topic sections. Personal categories fold into one "Personal" group.
+const GROUPS = [
+  { id: "ai-engineering", label: categoryLabel("ai-engineering"), cats: ["ai-engineering"] },
+  { id: "tech-opinions", label: categoryLabel("tech-opinions"), cats: ["tech-opinions"] },
+  { id: "personal", label: "Personal", cats: ["sports", "random"] },
+] as const;
+
+const sections = GROUPS.map((g) => {
+  const topics = TOPIC_ORDER.filter((t) => (g.cats as readonly string[]).includes(TOPICS[t].category))
+    .map((t) => ({ id: t, label: TOPICS[t].label, posts: postsByTopic(listed, t) }))
+    .filter((t) => t.posts.length > 0);
+  return { ...g, topics, count: topics.reduce((n, t) => n + t.posts.length, 0) };
+}).filter((g) => g.count > 0);
+
+// Type filter chips: only types that have at least one published post.
+const typeCounts = new Map<PostType, number>();
+for (const p of listed) typeCounts.set(p.data.type, (typeCounts.get(p.data.type) ?? 0) + 1);
+const typeChips = (Object.keys(POST_TYPES) as PostType[])
+  .filter((t) => typeCounts.has(t))
+  .map((t) => ({ id: t, label: POST_TYPES[t].label, count: typeCounts.get(t)! }));
+
+// Side-index entries: group headings, then topic sub-headings (when a group has several).
+const indexItems = sections.flatMap((g) => [
+  { id: `g-${g.id}`, label: g.label, depth: 2 },
+  ...(g.topics.length > 1 ? g.topics.map((t) => ({ id: `t-${t.id}`, label: t.label, depth: 3 })) : []),
+]);
 ---
 
 <BaseLayout
-  title="Blog"
-  description="Writing on AI engineering, tech opinions, sports, and the occasional tangent."
+  title="Writing"
+  description="Experiments, explainers, build logs and essays on AI engineering, plus tech opinions and a separate personal stream."
 >
   <div class="mx-auto px-6 py-16" style="max-width: var(--content-max);">
     <header class="reveal">
       <h1 class="text-3xl font-bold tracking-tight text-ink sm:text-4xl">Writing</h1>
       <p class="mt-3 max-w-2xl text-muted">
-        Notes on building practical AI systems — plus tech opinions and a clearly separated
-        personal stream.
+        Notes on building practical AI systems: experiments with their data, explainers, build logs
+        and essays, plus tech opinions and a clearly separated personal stream.
       </p>
     </header>
 
@@ -39,14 +74,164 @@ const lastPage = Math.max(1, Math.ceil(listed.length / PAGE_SIZE));
       <CategoryNav active="all" />
     </div>
 
-    <div
-      class="mt-6 grid gap-5"
-      style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"
-    >
-      {pageItems.map((post) => <PostCard post={post} />)}
-      {pageItems.length === 0 && <p class="py-16 text-faint">No posts yet.</p>}
+    <div class="mt-4 flex flex-wrap gap-1.5" role="group" aria-label="Filter by post type" data-type-filter>
+      <button type="button" class="type-chip" data-type="all" aria-pressed="true">
+        All types <span class="opacity-60">{listed.length}</span>
+      </button>
+      {
+        typeChips.map((c) => (
+          <button type="button" class="type-chip" data-type={c.id} aria-pressed="false">
+            {c.label} <span class="opacity-60">{c.count}</span>
+          </button>
+        ))
+      }
     </div>
 
-    <Pagination currentPage={1} lastPage={lastPage} base="/blog" />
+    <div class="mt-8 grid gap-12 lg:grid-cols-[minmax(0,1fr)_15rem]">
+      <div class="min-w-0">
+        <WritingIndex items={indexItems} variant="chips" client:idle />
+
+        {
+          sections.map((g) => (
+            <section id={`g-${g.id}`} class="writing-group scroll-mt-24" data-group>
+              <h2 class="flex items-baseline gap-2.5 text-2xl font-bold tracking-tight text-ink">
+                {g.label}
+                <span class="font-mono text-sm font-normal text-faint" data-count>
+                  {g.count}
+                </span>
+              </h2>
+              {g.topics.map((t) => (
+                <div id={`t-${t.id}`} class="writing-topic mt-6 scroll-mt-24" data-topic>
+                  {g.topics.length > 1 && (
+                    <h3 class="writing-topic-h">
+                      <a href={`/blog/topic/${t.id}`} class="text-muted no-underline hover:text-accent">
+                        {t.label}
+                      </a>
+                    </h3>
+                  )}
+                  <div
+                    class="grid gap-5"
+                    style="grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));"
+                  >
+                    {t.posts.slice(0, PER_TOPIC).map((post) => (
+                      <div data-post-type={post.data.type} class="h-full">
+                        <PostCard post={post} />
+                      </div>
+                    ))}
+                  </div>
+                  {t.posts.length > PER_TOPIC && (
+                    <a
+                      href={`/blog/topic/${t.id}`}
+                      class="mt-4 inline-block font-mono text-xs text-muted no-underline hover:text-accent"
+                    >
+                      All {t.posts.length} in {t.label} →
+                    </a>
+                  )}
+                </div>
+              ))}
+            </section>
+          ))
+        }
+        <p class="hidden py-16 text-faint" data-empty>No posts of this type yet.</p>
+      </div>
+
+      <aside class="hidden lg:block">
+        <div class="sticky top-24">
+          <WritingIndex items={indexItems} variant="side" client:idle />
+        </div>
+      </aside>
+    </div>
   </div>
 </BaseLayout>
+
+<style>
+  .writing-group + .writing-group {
+    margin-top: 3rem;
+  }
+  .writing-topic-h {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .writing-topic-h::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+  }
+  .type-chip {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-muted);
+    cursor: pointer;
+  }
+  .type-chip:hover {
+    color: var(--color-ink);
+  }
+  .type-chip[aria-pressed="true"] {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+</style>
+
+<script>
+  // Client-side type filter, synced to ?type= so filtered views are linkable.
+  // Hides cards, then empty topics/groups, and tells the side index what's left.
+  function setup() {
+    const bar = document.querySelector<HTMLElement>("[data-type-filter]");
+    if (!bar || bar.dataset.ready) return;
+    bar.dataset.ready = "1";
+
+    const apply = (type: string) => {
+      bar.querySelectorAll<HTMLButtonElement>("[data-type]").forEach((b) =>
+        b.setAttribute("aria-pressed", String(b.dataset.type === type)),
+      );
+      document.querySelectorAll<HTMLElement>("[data-post-type]").forEach((c) => {
+        c.hidden = type !== "all" && c.dataset.postType !== type;
+      });
+      const visible: string[] = [];
+      document.querySelectorAll<HTMLElement>("[data-group]").forEach((g) => {
+        let groupCount = 0;
+        g.querySelectorAll<HTMLElement>("[data-topic]").forEach((t) => {
+          const n = t.querySelectorAll("[data-post-type]:not([hidden])").length;
+          t.hidden = n === 0;
+          if (n) visible.push(t.id);
+          groupCount += n;
+        });
+        g.hidden = groupCount === 0;
+        if (groupCount) visible.push(g.id);
+        const count = g.querySelector("[data-count]");
+        if (count) count.textContent = String(groupCount);
+      });
+      document.querySelector<HTMLElement>("[data-empty]")!.hidden = visible.length > 0;
+      // Kept on window too: the index islands may hydrate after the initial ?type= filter runs.
+      (window as unknown as { __writingVisible?: string[] }).__writingVisible = visible;
+      document.dispatchEvent(new CustomEvent("writing:filter", { detail: { visible } }));
+
+      const url = new URL(location.href);
+      if (type === "all") url.searchParams.delete("type");
+      else url.searchParams.set("type", type);
+      history.replaceState(history.state, "", url);
+    };
+
+    bar.addEventListener("click", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-type]");
+      if (b) apply(b.dataset.type!);
+    });
+    const initial = new URL(location.href).searchParams.get("type");
+    if (initial && bar.querySelector(`[data-type="${CSS.escape(initial)}"]`)) apply(initial);
+  }
+  setup();
+  document.addEventListener("astro:page-load", setup);
+</script>

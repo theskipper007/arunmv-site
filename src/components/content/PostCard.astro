@@ -1,5 +1,6 @@
 ---
 import CategoryPill from "./CategoryPill.astro";
+import TypeTag from "./TypeTag.astro";
 import CoverArt from "./CoverArt.astro";
 import { formatDate, readingMinutes, type Post } from "../../lib/collections";
 
@@ -7,7 +8,7 @@ interface Props {
   post: Post;
 }
 const { post } = Astro.props;
-const { title, description, pubDate, category, heroImage, heroVideo } = post.data;
+const { title, description, pubDate, category, heroImage, heroVideo, type, result } = post.data;
 const minutes = readingMinutes(post);
 ---
 
@@ -25,8 +26,9 @@ const minutes = readingMinutes(post);
     />
   </a>
   <div class="flex flex-1 flex-col gap-3 p-5">
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
       <CategoryPill category={category} size="sm" />
+      <TypeTag type={type} />
       <span class="font-mono text-xs text-faint">
         <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time> · {minutes} min
       </span>
@@ -39,6 +41,14 @@ const minutes = readingMinutes(post);
         {title}
       </a>
     </h3>
+    {
+      result && (
+        <p class="border-l-2 border-accent pl-2.5 font-mono text-[0.78rem] leading-snug text-ink">
+          {result.headline}
+          {result.detail && <span class="text-muted"> · {result.detail}</span>}
+        </p>
+      )
+    }
     <p class="text-muted">{description}</p>
   </div>
 </article>

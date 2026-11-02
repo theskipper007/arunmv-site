@@ -1,0 +1,77 @@
+---
+/**
+ * Tufte-style sidenote. Floats into the right margin on wide screens; on phones
+ * the numbered marker toggles the note inline. Pure CSS (checkbox hack), no JS.
+ */
+interface Props {
+  n: number | string;
+}
+const { n } = Astro.props;
+const id = `sn-${n}-${Math.random().toString(36).slice(2, 7)}`;
+---
+
+<span class="sn"
+  ><label for={id} class="sn-ref" aria-label={`Sidenote ${n}`}>{n}</label><input
+    type="checkbox"
+    id={id}
+    class="sn-toggle"
+  /><span class="sn-body"><b>{n}</b><slot /></span></span
+>
+
+<style>
+  .sn-ref {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    vertical-align: super;
+    line-height: 0;
+    padding: 0.15em 0.35em;
+    margin-left: 0.1em;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--color-accent);
+    background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  }
+  .sn-toggle {
+    display: none;
+  }
+  .sn-body {
+    display: none;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+  .sn-body b {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-accent);
+    margin-right: 0.35em;
+  }
+  .sn-toggle:checked + .sn-body {
+    display: block;
+    margin: 0.6em 0;
+    padding: 0.6em 0.8em;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+  }
+  /* The right margin is taken by the table of contents, so on wide screens the
+   * note floats inside the reading column instead of outside it. */
+  @media (min-width: 1024px) {
+    .sn-ref {
+      pointer-events: none;
+    }
+    .sn-body,
+    .sn-toggle:checked + .sn-body {
+      display: block;
+      float: right;
+      clear: right;
+      width: 13rem;
+      margin: 0.35rem 0 0.75rem 1.25rem;
+      padding: 0 0 0 0.75rem;
+      background: none;
+      border-left: 2px solid var(--color-border);
+      border-radius: 0;
+    }
+  }
+</style>

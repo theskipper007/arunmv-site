@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { getPublishedPosts, getProjects, categoryLabel } from "../lib/collections";
+import { getPublishedPosts, getProjects, categoryLabel, typeLabel } from "../lib/collections";
 import { SITE } from "../lib/seo";
 
 // AI-crawler index following the llms.txt convention (spec §11).
@@ -12,7 +12,7 @@ export async function GET(_context: APIContext) {
     "",
     `> ${SITE.description}`,
     "",
-    "Practical, reliable, cost-aware AI engineering. Backend/platform engineer turned applied AI.",
+    "Research on retrieval, LLM evaluation and agent reliability, from an engineer who ships production LLM systems.",
     "",
     "## Key pages",
     `- [Home](${SITE.url}/)`,
@@ -23,7 +23,7 @@ export async function GET(_context: APIContext) {
     "## Blog posts",
     ...posts.map(
       (p) =>
-        `- [${p.data.title}](${SITE.url}/blog/${p.id}): ${p.data.description} (${categoryLabel(p.data.category)})`,
+        `- [${p.data.title}](${SITE.url}/blog/${p.id}): ${p.data.description} (${categoryLabel(p.data.category)} · ${typeLabel(p.data.type)})`,
     ),
     "",
     "## Projects",

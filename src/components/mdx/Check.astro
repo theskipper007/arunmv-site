@@ -1,0 +1,55 @@
+---
+/** Check-your-understanding question for explainers. Native <details>, no JS. */
+interface Props {
+  q: string;
+}
+const { q } = Astro.props;
+---
+
+<details class="check">
+  <summary><span class="check-badge">Check</span>{q}</summary>
+  <div class="check-body"><slot /></div>
+</details>
+
+<style>
+  .check {
+    margin: 1.75rem 0;
+    font-family: var(--font-sans);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+  summary {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-size: 0.98rem;
+    font-weight: 500;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  .check-badge {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #3b6ea5;
+    border: 1px solid color-mix(in oklab, #3b6ea5 35%, transparent);
+    border-radius: var(--radius-pill);
+    padding: 0.1em 0.55em;
+  }
+  .check-body {
+    padding: 0 1rem 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--color-muted);
+  }
+  .check-body :global(p) {
+    margin: 0;
+  }
+</style>

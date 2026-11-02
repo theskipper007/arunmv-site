@@ -13,7 +13,10 @@ const pages: Record<string, { title: string; description: string }> = {
 for (const p of posts) {
   pages[p.id] = {
     title: p.data.title,
-    description: `${categoryLabel(p.data.category)} · ${SITE.name}`,
+    // Research posts lead with their headline number; everything else with its category.
+    description: p.data.result
+      ? `${p.data.result.headline} · ${SITE.name}`
+      : `${categoryLabel(p.data.category)} · ${SITE.name}`,
   };
 }
 for (const p of projects) {

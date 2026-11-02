@@ -6,6 +6,15 @@ category: ai-engineering
 audience: technical
 tags: ["llmops", "cost", "rag", "evaluation", "caching"]
 heroImage: ../../assets/blog/cutting-llm-inference-cost.svg
+type: experiment
+topic: systems
+result:
+  claim: "Inference cost can drop sharply without moving the quality metric, if the metric is locked first."
+  setup: "Three levers (context budget, model routing, prefix caching), each gated on NDCG@10 ≥ 0.75 and an unchanged stage-attribution mix."
+  headline: "~40% lower cost"
+  detail: "NDCG@10 held at or above 0.75"
+  verdict: supported
+  verdictNote: "Routing the synthesis step to the cheap model failed the gate and was backed out."
 featured: false
 draft: false
 ---

@@ -2,9 +2,9 @@
 export const SITE = {
   url: "https://www.arun-mv.com",
   name: "Arun MV",
-  tagline: "I build AI products that hold up past the demo.",
+  tagline: "I build production LLM systems and study why they fail.",
   description:
-    "Practical, reliable, cost-aware AI engineering — writing and selected work by Arun MV.",
+    "Experiments, explainers and essays on retrieval, LLM evaluation and agent reliability, by AI engineer Arun MV.",
   author: "Arun MV",
   email: "arunmv.eh@gmail.com",
   github: "https://github.com/theskipper007",

@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { getPublishedPosts, categoryLabel, formatDate } from "../lib/collections";
+import { getPublishedPosts, categoryLabel, formatDate, typeLabel } from "../lib/collections";
 import { SITE } from "../lib/seo";
 
 // Full-text variant: inlines post bodies for models that ingest them (spec §11).
@@ -10,7 +10,7 @@ export async function GET(_context: APIContext) {
     [
       `# ${p.data.title}`,
       `URL: ${SITE.url}/blog/${p.id}`,
-      `Category: ${categoryLabel(p.data.category)} | Published: ${formatDate(p.data.pubDate)}`,
+      `Category: ${categoryLabel(p.data.category)} | Type: ${typeLabel(p.data.type)} | Published: ${formatDate(p.data.pubDate)}`,
       "",
       p.data.description,
       "",

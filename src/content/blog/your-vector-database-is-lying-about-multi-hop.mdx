@@ -6,9 +6,13 @@ category: ai-engineering
 audience: technical
 tags: ["rag", "retrieval", "vector-search", "multi-hop", "evaluation"]
 heroImage: ../../assets/blog/multi-hop-retrieval-lie.svg
+type: explainer
+topic: retrieval
 featured: false
 draft: false
 ---
+
+import HopGeometry from "../../components/figures/HopGeometry.tsx";
 
 <Tldr>
 
@@ -23,6 +27,8 @@ Most of what ends up here starts as a decision I had to make on a real system. T
 Take the canonical example: **"Who is the CEO of the company that acquired Instagram?"** That's two hops — *Instagram was acquired by Meta*, then *Meta's CEO is Mark Zuckerberg* — and a single-vector encoder has to cram the whole question into one fixed-dimensional point. The result lands at a centroid: close-ish to documents about the Instagram acquisition, close-ish to documents about CEOs, and nowhere near a document titled "Mark Zuckerberg" that never mentions Instagram at all.
 
 The second hop's evidence shares almost no lexical or semantic surface with the original query — the only thing linking the two is the **bridge entity** (Meta), which the question never names, because naming it is the whole point of hop one. Cosine similarity has no way to follow that link. It's a relevance proxy, not a reasoning operator: a dot product can encode "these are about similar things," but it can't encode a conjunctive constraint like "X such that X acquired Instagram *and* Y is CEO of X." That's a join. Similarity is a nearest-neighbor lookup. You're asking a ruler to do a query planner's job.
+
+<HopGeometry client:visible />
 
 It's tempting to assume a bigger embedding model fixes this. It doesn't, and that's the part I hadn't appreciated until I read <u>Weller, Boratko, Naim & Lee</u> (Google DeepMind / JHU, 2025). They connect retrieval to communication-complexity results and prove that for embedding dimension *d*, the number of distinct top-k document subsets any single-vector model can ever return is fundamentally bounded by *d* — regardless of training data or model size. Their LIMIT benchmark instantiates hard relevance combinations against this bound, and SOTA models fail badly on it: on the full corpus, most don't clear 20% recall@100 (GritLM-7B, 4096 dimensions, scores 12.9). Almost no correlation shows up between a model's MTEB score and its LIMIT score — mainstream benchmarks simply don't probe the geometry that breaks.
 

@@ -7,6 +7,8 @@ import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
 import rehypeSlug from 'rehype-slug';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { remarkReadingTime } from './src/lib/reading-time.ts';
 
@@ -16,8 +18,10 @@ export default defineConfig({
   integrations: [mdx(), react(), sitemap()],
 
   markdown: {
-    remarkPlugins: [remarkReadingTime],
+    remarkPlugins: [remarkReadingTime, remarkMath],
     rehypePlugins: [
+      // MathML output renders natively in browsers, so no KaTeX stylesheet or fonts ship.
+      [rehypeKatex, { output: 'mathml' }],
       rehypeSlug,
       [
         rehypeAutolinkHeadings,

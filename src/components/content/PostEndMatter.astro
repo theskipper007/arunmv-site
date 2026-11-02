@@ -1,0 +1,165 @@
+---
+import { formatDate, isResearchType, type Post } from "../../lib/collections";
+import { SITE } from "../../lib/seo";
+
+/**
+ * End-of-post research blocks, each rendered only when its frontmatter exists:
+ * verdict → discussion links → changelog → cite this (research types only).
+ */
+interface Props {
+  post: Post;
+}
+const { post } = Astro.props;
+const { result, discussion, changelog, type, title, pubDate } = post.data;
+
+const VERDICT = {
+  supported: { label: "Supported", color: "#2E8B57" },
+  "not-supported": { label: "Not supported", color: "#C2402F" },
+  inconclusive: { label: "Inconclusive", color: "#8A8980" },
+  null: { label: "Null result", color: "#8A8980" },
+} as const;
+const verdict = result?.verdict ? VERDICT[result.verdict] : null;
+
+const year = pubDate.getFullYear();
+const key = `mv${year}${post.id.split("-").slice(0, 2).join("")}`.replace(/[^a-z0-9]/gi, "");
+const bibtex = `@misc{${key},
+  title  = {${title}},
+  author = {MV, Arun},
+  year   = {${year}},
+  url    = {${SITE.url}/blog/${post.id}},
+  note   = {${formatDate(pubDate)}}
+}`;
+const cite = isResearchType(type);
+const hasDiscussion = discussion && (discussion.linkedin || discussion.x);
+---
+
+{
+  verdict && (
+    <section class="endbox" aria-label="Verdict">
+      <h2 class="endbox-h">Verdict</h2>
+      <p class="mt-2 flex flex-wrap items-center gap-3">
+        <span class="verdict-pill" style={`--vc:${verdict.color}`}>
+          {verdict.label}
+        </span>
+        {result?.verdictNote && <span class="text-[0.95rem] text-muted">{result.verdictNote}</span>}
+      </p>
+    </section>
+  )
+}
+
+{
+  (hasDiscussion || changelog.length > 0) && (
+    <section class="endbox" aria-label="Discussion and changelog">
+      {hasDiscussion && (
+        <>
+          <h2 class="endbox-h">Discussion</h2>
+          <div class="mt-3 grid gap-2.5 sm:grid-cols-2">
+            {discussion?.linkedin && (
+              <a class="disc-link" href={discussion.linkedin} target="_blank" rel="noopener">
+                <span class="font-mono text-[0.7rem] text-faint">LINKEDIN</span>
+                <br />
+                Thread on this post
+              </a>
+            )}
+            {discussion?.x && (
+              <a class="disc-link" href={discussion.x} target="_blank" rel="noopener">
+                <span class="font-mono text-[0.7rem] text-faint">X</span>
+                <br />
+                Thread on this post
+              </a>
+            )}
+          </div>
+        </>
+      )}
+      {changelog.length > 0 && (
+        <>
+          <h2 class:list={["endbox-h", hasDiscussion && "mt-5"]}>Changelog</h2>
+          <ul class="mt-2 list-none p-0">
+            {[...changelog]
+              .sort((a, b) => b.date.valueOf() - a.date.valueOf())
+              .map((c) => (
+                <li class="grid grid-cols-[7rem_1fr] gap-3 border-t border-border py-2 text-[0.92rem] text-muted">
+                  <time class="font-mono text-xs text-faint" datetime={c.date.toISOString()}>
+                    {formatDate(c.date)}
+                  </time>
+                  <span>{c.note}</span>
+                </li>
+              ))}
+          </ul>
+        </>
+      )}
+    </section>
+  )
+}
+
+{
+  cite && (
+    <section class="endbox" aria-label="Cite this">
+      <h2 class="endbox-h">Cite this</h2>
+      <pre class="cite-pre">{bibtex}</pre>
+    </section>
+  )
+}
+
+<style>
+  .endbox {
+    margin-top: 2rem;
+    font-family: var(--font-sans);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.25rem;
+    background: var(--color-surface);
+  }
+  .endbox-h {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-faint);
+  }
+  .verdict-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    border-radius: var(--radius-pill);
+    padding: 0.2rem 0.65rem;
+    color: var(--vc);
+    border: 1px solid color-mix(in oklab, var(--vc) 40%, transparent);
+    background: color-mix(in oklab, var(--vc) 9%, transparent);
+  }
+  .verdict-pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .disc-link {
+    display: block;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-ink);
+    text-decoration: none;
+    font-size: 0.92rem;
+  }
+  .disc-link:hover {
+    border-color: var(--color-ink);
+    color: var(--color-ink);
+  }
+  .cite-pre {
+    margin: 0.75rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-paper);
+    overflow-x: auto;
+  }
+</style>

@@ -6,6 +6,16 @@ category: ai-engineering
 audience: technical
 tags: ["evals", "mutation-testing", "ci", "llm-as-judge", "reliability"]
 heroImage: ../../assets/blog/your-evals-have-no-tests.svg
+type: experiment
+topic: evals
+result:
+  claim: "Most eval suites let the majority of deliberately planted breaks through."
+  setup: "19 mutants across prompt, retrieval, model and agent layers; suite rerun unchanged."
+  headline: "15 of 19 escaped"
+  detail: "79% escape rate on the sample run"
+  resolution: "n = 40, σ = 0.041, MDE ≈ 9.2 pts"
+  verdict: supported
+  verdictNote: "Escapes cluster in retrieval grounding and agent-path checks."
 featured: false
 draft: false
 ---

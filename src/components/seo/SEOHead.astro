@@ -12,6 +12,7 @@ interface Props {
   /** Extra JSON-LD blocks (BlogPosting, Breadcrumb, …). */
   schema?: Record<string, unknown>[];
   noindex?: boolean;
+  citation?: { title: string; author: string; date: Date; url: string };
 }
 
 const {
@@ -23,7 +24,11 @@ const {
   modifiedTime,
   schema = [],
   noindex = false,
+  citation,
 } = Astro.props;
+const citationDate = citation
+  ? `${citation.date.getFullYear()}/${String(citation.date.getMonth() + 1).padStart(2, "0")}/${String(citation.date.getDate()).padStart(2, "0")}`
+  : "";
 
 const fullTitle = !title || title === SITE.name ? SITE.name : `${title} — ${SITE.name}`;
 const canonical = Astro.url.href;
@@ -74,5 +79,17 @@ const baseSchema: Record<string, unknown>[] = [
 <meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={image} />
+
+{/* Highwire Press tags: how Google Scholar recognises a self-hosted paper-like page. */}
+{
+  citation && (
+    <>
+      <meta name="citation_title" content={citation.title} />
+      <meta name="citation_author" content={citation.author} />
+      <meta name="citation_publication_date" content={citationDate} />
+      <meta name="citation_public_url" content={citation.url} />
+    </>
+  )
+}
 
 <JsonLd schema={[...baseSchema, ...schema]} />

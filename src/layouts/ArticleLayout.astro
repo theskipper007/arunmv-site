@@ -6,10 +6,20 @@ import Tag from "../components/content/Tag.astro";
 import SeriesNav from "../components/content/SeriesNav.astro";
 import RelatedPosts from "../components/content/RelatedPosts.astro";
 import CoverArt from "../components/content/CoverArt.astro";
+import TypeTag from "../components/content/TypeTag.astro";
+import ResultCard from "../components/content/ResultCard.astro";
+import AgeBanner from "../components/content/AgeBanner.astro";
+import PostEndMatter from "../components/content/PostEndMatter.astro";
 import TableOfContents from "../components/content/TableOfContents.tsx";
 import ReadingProgress from "../components/content/ReadingProgress.tsx";
 import type { Heading } from "../components/content/TableOfContents.tsx";
-import { formatDate, readingMinutes, categoryLabel, type Post } from "../lib/collections";
+import {
+  formatDate,
+  readingMinutes,
+  categoryLabel,
+  isResearchType,
+  type Post,
+} from "../lib/collections";
 import { SITE, ogImage } from "../lib/seo";
 
 interface Props {
@@ -19,13 +29,27 @@ interface Props {
   series?: { name: string; parts: Post[] };
 }
 const { post, headings, related, series } = Astro.props;
-const { title, description, pubDate, updatedDate, category, tags, heroImage, heroVideo } =
-  post.data;
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  category,
+  tags,
+  heroImage,
+  heroVideo,
+  type: postType,
+  result,
+  repro,
+  runDate,
+} = post.data;
+const research = isResearchType(postType);
 const minutes = readingMinutes(post);
 
 const blogPosting = {
   "@context": "https://schema.org",
-  "@type": "BlogPosting",
+  // Research posts are typed as scholarly work so citation indexers pick them up.
+  "@type": research ? "ScholarlyArticle" : "BlogPosting",
   headline: title,
   description,
   datePublished: pubDate.toISOString(),
@@ -37,7 +61,17 @@ const blogPosting = {
   keywords: tags.join(", "),
   wordCount: (post.body ?? "").split(/\s+/).length,
   image: ogImage(post.id),
+  ...(research && result ? { abstract: `${result.claim} ${result.headline}.` } : {}),
 };
+
+const citation = research
+  ? {
+      title,
+      author: "MV, Arun",
+      date: pubDate,
+      url: Astro.url.href,
+    }
+  : undefined;
 ---
 
 <BaseLayout
@@ -48,6 +82,7 @@ const blogPosting = {
   publishedTime={pubDate.toISOString()}
   modifiedTime={(updatedDate ?? pubDate).toISOString()}
   schema={[blogPosting]}
+  citation={citation}
 >
   <ReadingProgress client:idle />
 
@@ -86,7 +121,10 @@ const blogPosting = {
     <div class="mt-8 lg:grid lg:grid-cols-[1fr_16rem] lg:gap-12">
       <div class="mx-auto w-full min-w-0 max-w-[68ch]">
         <header>
-          <CategoryPill category={category} />
+          <div class="flex flex-wrap items-center gap-2">
+            <CategoryPill category={category} />
+            <TypeTag type={postType} />
+          </div>
           <h1
             class="mt-4 font-serif text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl"
           >
@@ -99,6 +137,9 @@ const blogPosting = {
             · {minutes} min read
           </p>
         </header>
+
+        {result && <ResultCard result={result} repro={repro} />}
+        {postType === "trendtest" && runDate && <AgeBanner runDate={runDate} />}
 
         <div class="mt-8">
           <CoverArt
@@ -114,6 +155,8 @@ const blogPosting = {
         <article class="prose mt-10 w-full max-w-none" data-pagefind-body>
           {series && <SeriesNav seriesName={series.name} parts={series.parts} currentId={post.id} />}
           <slot />
+
+          <PostEndMatter post={post} />
 
           <hr />
           <div class="flex flex-wrap gap-x-3 gap-y-2">

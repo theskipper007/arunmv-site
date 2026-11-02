@@ -1,0 +1,19 @@
+---
+import { formatDate } from "../../lib/collections";
+
+/** Trend tests go stale fast: show how old the run is, computed at build time. */
+interface Props {
+  runDate: Date;
+}
+const { runDate } = Astro.props;
+const days = Math.max(0, Math.floor((Date.now() - runDate.valueOf()) / 86_400_000));
+---
+
+<aside
+  class="mt-8 rounded-[var(--radius-md)] border p-4 text-[0.92rem] text-muted"
+  style="border-color: color-mix(in oklab, #C9821B 35%, transparent); background: color-mix(in oklab, #C9821B 7%, var(--color-surface));"
+  role="note"
+>
+  <strong class="text-ink">Age of result: {days} day{days === 1 ? "" : "s"}.</strong>
+  Run on {formatDate(runDate)} against the versions available that day. Rerun before quoting the number.
+</aside>

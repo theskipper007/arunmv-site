@@ -6,6 +6,8 @@ import Callout from "../../components/mdx/Callout.astro";
 import Figure from "../../components/mdx/Figure.astro";
 import Diagram from "../../components/mdx/Diagram.astro";
 import Tldr from "../../components/mdx/Tldr.astro";
+import Sidenote from "../../components/mdx/Sidenote.astro";
+import Check from "../../components/mdx/Check.astro";
 import {
   getPublishedPosts,
   relatedPosts,
@@ -32,5 +34,5 @@ const series = post.data.series
 ---
 
 <ArticleLayout post={post} headings={headings} related={related} series={series}>
-  <Content components={{ Callout, Figure, Diagram, Tldr }} />
+  <Content components={{ Callout, Figure, Diagram, Tldr, Sidenote, Check }} />
 </ArticleLayout>

@@ -38,6 +38,65 @@ export const CATEGORY_THEME: Record<
 
 export const categoryTheme = (c: Category) => CATEGORY_THEME[c];
 
+export type PostType = Post["data"]["type"];
+export type Topic = NonNullable<Post["data"]["topic"]>;
+
+/**
+ * Post types from the research-in-public format list. `research` types get the
+ * result card, cite block and ScholarlyArticle schema; essays render unchanged.
+ */
+export const POST_TYPES: Record<PostType, { label: string; color: string; research: boolean }> = {
+  essay: { label: "Essay", color: "var(--color-faint)", research: false },
+  experiment: { label: "Experiment", color: "#C25A3C", research: true },
+  ablation: { label: "Ablation", color: "#B23A2B", research: true },
+  benchmark: { label: "Benchmark", color: "#C9821B", research: true },
+  explainer: { label: "Explainer", color: "#3B6EA5", research: false },
+  buildlog: { label: "Build log", color: "#2E8B57", research: false },
+  derivation: { label: "Derivation", color: "#7A4FC4", research: false },
+  bugautopsy: { label: "Bug autopsy", color: "#8A5A44", research: false },
+  papernote: { label: "Paper note", color: "#0F8A7A", research: false },
+  reproduction: { label: "Reproduction", color: "#A33B6B", research: true },
+  trendtest: { label: "Trend test", color: "#B07A10", research: true },
+  fieldlog: { label: "Field log", color: "var(--color-muted)", research: false },
+  reflection: { label: "Reflection", color: "var(--color-muted)", research: false },
+};
+export const typeLabel = (t: PostType) => POST_TYPES[t].label;
+export const isResearchType = (t: PostType) => POST_TYPES[t].research;
+
+/** Topic sub-sections for the Writing page, grouped under their category. */
+export const TOPICS: Record<Topic, { label: string; category: Category }> = {
+  retrieval: { label: "Retrieval & RAG", category: "ai-engineering" },
+  graphs: { label: "Knowledge graphs & memory", category: "ai-engineering" },
+  evals: { label: "Evals & hallucination", category: "ai-engineering" },
+  agents: { label: "Agents & workflows", category: "ai-engineering" },
+  systems: { label: "Cost, architecture & governance", category: "ai-engineering" },
+  opinions: { label: "Opinions", category: "tech-opinions" },
+  sports: { label: "Sports", category: "sports" },
+  random: { label: "Random", category: "random" },
+};
+export const TOPIC_ORDER = Object.keys(TOPICS) as Topic[];
+export const topicLabel = (t: Topic) => TOPICS[t].label;
+
+/** Topic falls back to the category's own bucket for posts without one. */
+export function postTopic(p: Post): Topic {
+  if (p.data.topic) return p.data.topic;
+  const fallback: Record<Category, Topic> = {
+    "ai-engineering": "systems",
+    "tech-opinions": "opinions",
+    sports: "sports",
+    random: "random",
+  };
+  return fallback[p.data.category];
+}
+
+export function postsByTopic(posts: Post[], topic: Topic) {
+  return posts.filter((p) => postTopic(p) === topic);
+}
+
+export function postsByType(posts: Post[], type: PostType) {
+  return posts.filter((p) => p.data.type === type);
+}
+
 /** Drafts are excluded from production builds (spec §10). */
 const isVisible = (p: Post) => import.meta.env.DEV || !p.data.draft;
 
@@ -103,6 +162,7 @@ export function relatedPosts(post: Post, all: Post[], limit = 3): Post[] {
   const scored = candidates.map((p) => {
     let score = 0;
     if (p.data.category === post.data.category) score += 5;
+    if (postTopic(p) === postTopic(post)) score += 3;
     score += p.data.tags.filter((t) => post.data.tags.includes(t)).length * 2;
     return { p, score };
   });

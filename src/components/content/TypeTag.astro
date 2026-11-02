@@ -1,0 +1,25 @@
+---
+import { POST_TYPES, type PostType } from "../../lib/collections";
+
+interface Props {
+  type: PostType;
+  class?: string;
+}
+const { type, class: className = "" } = Astro.props;
+// Essays are the default and stay unlabelled so the list reads quietly.
+const meta = POST_TYPES[type];
+---
+
+{
+  type !== "essay" && (
+    <span
+      class:list={[
+        "type-tag inline-flex w-fit items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] border border-border bg-surface px-1.5 py-0.5 font-mono text-[0.68rem] uppercase tracking-wide text-ink",
+        className,
+      ]}
+    >
+      <i aria-hidden="true" class="inline-block h-1.5 w-1.5 rounded-[2px]" style={`background:${meta.color}`}></i>
+      {meta.label}
+    </span>
+  )
+}

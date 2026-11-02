@@ -20,6 +20,8 @@ interface Props {
   modifiedTime?: string;
   schema?: Record<string, unknown>[];
   noindex?: boolean;
+  /** Highwire citation_* tags for research posts (Google Scholar). */
+  citation?: { title: string; author: string; date: Date; url: string };
 }
 
 const props = Astro.props;

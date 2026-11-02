@@ -5,6 +5,7 @@ import GithubIcon from "../components/ui/icons/GithubIcon.astro";
 import LinkedinIcon from "../components/ui/icons/LinkedinIcon.astro";
 import PageLayout from "../layouts/PageLayout.astro";
 import { SITE } from "../lib/seo";
+import { getPublishedPosts, typeLabel } from "../lib/collections";
 import portrait from "../assets/arun.png";
 
 const links = [
@@ -12,16 +13,22 @@ const links = [
   { label: "LinkedIn", href: SITE.linkedin, Icon: LinkedinIcon },
   { label: "Email", href: `mailto:${SITE.email}`, Icon: Mail },
 ];
+
+// Evidence for the research interests: typed posts first, newest first.
+const EVIDENCE_TYPES = ["experiment", "benchmark", "reproduction", "ablation", "explainer", "buildlog"];
+const evidence = (await getPublishedPosts())
+  .filter((p) => EVIDENCE_TYPES.includes(p.data.type))
+  .slice(0, 6);
 ---
 
 <PageLayout
   title="About"
-  description="Arun MV — AI engineer and product builder turning messy ideas into products people actually want to use. Driven by curiosity and a habit of learning by exploring."
+  description="Arun MV, an AI engineer who builds production LLM systems and studies why they fail: retrieval, LLM evaluation and agent reliability."
   prose
 >
   <div class="flex flex-col-reverse gap-6 sm:flex-row sm:items-center sm:justify-between">
     <h1 class="font-serif text-4xl font-semibold tracking-tight text-ink">
-      I build AI products and thoughtful software.
+      I build production LLM systems and study why they fail.
     </h1>
     <Image
       src={portrait}
@@ -35,39 +42,65 @@ const links = [
   <div class="prose mt-8">
     <p>Hey, I'm Arun.</p>
     <p>
-      I'm an AI engineer and product builder who enjoys turning messy ideas into products people
-      actually want to use.
+      I'm an AI engineer. Most of my work has been shipping LLM systems that people depend on:
+      retrieval pipelines, agents, and the evals and cost controls around them. That work is where
+      my research questions come from. A system passes its evals and still fails a user. A
+      retrieval stack scores well on average and misses exactly the question that mattered. An
+      agent does the right thing for the wrong reason.
     </p>
     <p>
-      Over the last few years, I've worked across multiple languages, React, modern web stacks,
-      and AI systems — building software that sits somewhere between engineering, product
-      thinking, and experimentation. I enjoy the part where technology stops being a demo and
-      starts becoming useful.
-    </p>
-    <p>
-      Most of what I know, I learned by exploring — pulling things apart, building past the edge
-      of what I understood, and following my curiosity wherever it pointed. That curiosity, and
-      the confidence that I can figure things out, are what fuel me. It's how a question turns
-      into a prototype, and a prototype turns into something real.
+      I'm moving toward research full time, and this site is where that work happens in public.
     </p>
 
-    <p>This space is where I write about things I'm learning and building:</p>
+    <h2>Research interests</h2>
     <ul>
-      <li>AI products and applied intelligence</li>
-      <li>Software engineering and developer tools</li>
-      <li>Product design and systems thinking</li>
-      <li>Experiments, failures, and lessons from shipping</li>
+      <li>
+        <strong>Retrieval over structured knowledge.</strong> When relationship-aware retrieval
+        (graphs, entity links, multi-hop) beats flat hybrid search, and what it costs.
+      </li>
+      <li>
+        <strong>Evaluation methodology for LLM systems.</strong> Judge calibration, noise floors and
+        minimum detectable effects, and whether an eval suite can see the regression you care about.
+      </li>
+      <li>
+        <strong>Agent reliability.</strong> Bounded agents, tool-use failures, and checking the path
+        an agent took as well as its outcome.
+      </li>
     </ul>
 
+    <h2>How I work</h2>
+    <ul>
+      <li>I write the hypothesis down, with a date, before I run the experiment.</li>
+      <li>Every number I publish carries its sample size, seeds or a confidence interval.</li>
+      <li>Null and negative results get published as findings.</li>
+      <li>Code, configs and a one-command rerun go up with the write-up when the data allows it.</li>
+    </ul>
+
+    {
+      evidence.length > 0 && (
+        <>
+          <h2>Selected writing</h2>
+          <ul>
+            {evidence.map((p) => (
+              <li>
+                <a href={`/blog/${p.id}`}>{p.data.title}</a>{" "}
+                <span class="font-mono text-sm text-faint">· {typeLabel(p.data.type)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )
+    }
+
+    <h2>Outside work</h2>
     <p>
-      Outside work, I'm equally interested in the human side of things — football, long-term
-      thinking, habits, stories, and the ideas that shape how we build and live.
+      Football, mostly. I follow it too closely. I also write the occasional personal essay; those
+      live in their own stream and never mix with the technical feed.
     </p>
     <p>
-      I don't write because I have all the answers. I write to think clearly, document what I
-      discover, and leave useful trails for people building similar things.
+      If you work on retrieval, evals or agent reliability and want to compare notes, or you're
+      hiring for research roles in this area, email me.
     </p>
-    <p>If something here resonates, stick around.</p>
   </div>
 
   <div class="mt-10 flex gap-4">

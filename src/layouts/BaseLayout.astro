@@ -53,10 +53,15 @@ const props = Astro.props;
       })();
     </script>
 
+    {/* Cloudflare Email Obfuscation rewrites addresses to "[email protected]" and decodes them
+        with a script that never re-runs after View Transitions; opt head and body out. */}
+    <!--email_off-->
     <SEOHead {...props} />
+    <!--/email_off-->
     <ClientRouter />
   </head>
   <body>
+    <!--email_off-->
     <a
       href="#main"
       class="sr-only rounded-[var(--radius-md)] bg-surface px-4 py-2 focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50"
@@ -95,5 +100,6 @@ const props = Astro.props;
       initReveal();
       document.addEventListener("astro:page-load", initReveal);
     </script>
+    <!--/email_off-->
   </body>
 </html>

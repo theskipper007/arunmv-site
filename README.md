@@ -54,3 +54,27 @@ npm run preview  # preview the production build
 ```
 
 Requires Node ≥ 22 (see `.nvmrc`).
+
+## New post newsletter
+
+When a Vercel production deployment succeeds from `main`, the GitHub Action sends a Resend
+broadcast for each blog post added in that deployment or changed from `draft: true` to
+`draft: false`. Edits to an already published post do not send another issue. Successful
+broadcasts are recorded in `src/data/newsletter-sent.json`, which powers the newsletter archive.
+
+Add these repository Actions secrets in GitHub under **Settings → Secrets and variables → Actions**:
+
+- `RESEND_API_KEY`
+- `RESEND_SEGMENT_ID`
+- `RESEND_TOPIC_TECHNICAL`
+- `RESEND_TOPIC_PERSONAL`
+- `NEWSLETTER_FROM` (optional; defaults to `Arun MV <newsletter@arun-mv.com>`)
+
+The Vercel GitHub integration must send its `deployment_status` events for the workflow to run.
+The site build copies post cover art to stable public URLs under `/newsletter-covers/` for email
+clients. To preview or send a newsletter manually:
+
+```sh
+npm run newsletter -- <post-slug> --dry-run
+npm run newsletter -- <post-slug> --test you@example.com
+```

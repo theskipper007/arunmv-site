@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && pagefind --site dist/client && node scripts/copy-pagefind.mjs",
+    "build": "node scripts/copy-newsletter-covers.mjs && astro build && pagefind --site dist/client && node scripts/copy-pagefind.mjs",
     "build:fast": "astro build",
     "preview": "astro preview",
     "astro": "astro",
@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "js-yaml": "^4.3.2",
-    "pagefind": "^1.5.2"
+    "pagefind": "^1.5.2",
+    "sharp": "^0.34.5"
   }
 }

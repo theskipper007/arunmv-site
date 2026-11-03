@@ -349,3 +349,50 @@ body {
   }
 }
 
+
+/* ----------------------------------------------------------------------------
+ * Section labels ("Writing", "About", …) — mono caps, bold enough to scan.
+ * ------------------------------------------------------------------------- */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* ----------------------------------------------------------------------------
+ * Button feel — every <button> and anything marked .btn-fx springs up a touch
+ * on hover and squishes on press; icons inside give a small hop. Uses the
+ * individual `scale` property so it composes with Tailwind's `translate`
+ * utilities, and lives outside @layer so its transition list wins.
+ * ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  :where(button, .btn-fx) {
+    transition:
+      scale 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      translate 200ms var(--ease),
+      color var(--dur-base) var(--ease),
+      background-color var(--dur-base) var(--ease),
+      border-color var(--dur-base) var(--ease),
+      box-shadow var(--dur-base) var(--ease),
+      opacity var(--dur-base) var(--ease);
+  }
+  :where(button, .btn-fx):not(:disabled):hover {
+    scale: 1.045;
+  }
+  :where(button, .btn-fx):not(:disabled):active {
+    scale: 0.93;
+    transition-duration: 90ms;
+  }
+  :where(button, .btn-fx):not(:disabled):hover > svg {
+    animation: btn-icon-hop 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes btn-icon-hop {
+    0% { transform: translateY(0) rotate(0); }
+    40% { transform: translateY(-2px) rotate(-10deg); }
+    70% { transform: translateY(0) rotate(6deg); }
+    100% { transform: translateY(0) rotate(0); }
+  }
+}

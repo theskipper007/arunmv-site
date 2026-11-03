@@ -1,34 +1,60 @@
 ---
 import CategoryPill from "./CategoryPill.astro";
+import CoverArt from "./CoverArt.astro";
 import TypeTag from "./TypeTag.astro";
 import { formatDate, readingMinutes, type Post } from "../../lib/collections";
 
 interface Props {
   post: Post;
+  /** Show the post's cover beside the title (home page list). */
+  thumb?: boolean;
 }
-const { post } = Astro.props;
-const { title, pubDate, category, type } = post.data;
+const { post, thumb = false } = Astro.props;
+const { title, pubDate, category, type, heroImage, heroVideo } = post.data;
 const minutes = readingMinutes(post);
 ---
 
-<div class="group relative flex flex-col gap-2 py-4 first:pt-0 last:pb-0">
-  <h3 class="flex items-center gap-1.5 text-lg font-semibold tracking-tight">
-    <a
-      href={`/blog/${post.id}`}
-      class="text-ink no-underline transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-accent"
-    >
-      {title}
-    </a>
-    <span
-      class="inline-block text-accent opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
-      aria-hidden="true">→</span
-    >
-  </h3>
-  <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-    <CategoryPill category={category} size="sm" class="relative z-10" />
-    <TypeTag type={type} />
-    <span class="font-mono text-xs text-faint">
-      <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time> · {minutes} min
-    </span>
+<div
+  class:list={[
+    "group relative py-4 first:pt-0 last:pb-0",
+    thumb ? "grid grid-cols-[7.5rem_1fr] items-center gap-4 sm:grid-cols-[10rem_1fr]" : "flex flex-col gap-2",
+    "border-t border-border first:border-t-0",
+  ]}
+>
+  {
+    thumb && (
+      <div class="overflow-hidden rounded-[var(--radius-md)] transition-transform duration-300 group-hover:scale-[1.03]">
+        <CoverArt
+          category={category}
+          image={heroImage}
+          video={heroVideo}
+          alt=""
+          ratio="16 / 10"
+          position="left"
+          label={false}
+        />
+      </div>
+    )
+  }
+  <div class="flex min-w-0 flex-col gap-2">
+    <h3 class="flex items-center gap-1.5 text-lg font-semibold leading-snug tracking-tight">
+      <a
+        href={`/blog/${post.id}`}
+        class="text-ink no-underline transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-accent"
+      >
+        {title}
+      </a>
+      <span
+        class="inline-block text-accent opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
+        aria-hidden="true">→</span
+      >
+    </h3>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <CategoryPill category={category} size="sm" class="relative z-10" />
+      <TypeTag type={type} />
+      <span class="font-mono text-xs text-faint">
+        <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time> · {minutes} min
+      </span>
+    </div>
   </div>
 </div>

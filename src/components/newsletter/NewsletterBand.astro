@@ -15,7 +15,7 @@ const { variant = "band", stacked = false } = Astro.props;
   aria-labelledby={`nl-band-${variant}`}
 >
   <div>
-    <p class="font-mono text-xs uppercase tracking-widest text-faint">Newsletter</p>
+    <p class="section-label">Newsletter</p>
     <h2 id={`nl-band-${variant}`} class="nl-band-h">
       {variant === "post" ? "Get the next post by email" : "Get new posts by email"}
     </h2>

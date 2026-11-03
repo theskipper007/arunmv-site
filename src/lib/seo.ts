@@ -20,6 +20,7 @@ export const SOCIAL_LINKS = [
 
 export const NAV = [
   { label: "Writing", href: "/blog" },
+  { label: "Experiments", href: "/experiments" },
   { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
 ];

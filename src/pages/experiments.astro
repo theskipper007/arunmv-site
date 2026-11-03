@@ -1,0 +1,43 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PostCard from "../components/content/PostCard.astro";
+import { getPublishedPosts, isResearchType, typeLabel } from "../lib/collections";
+
+// Every post whose type carries a measured result: experiments, ablations,
+// benchmarks, reproductions and trend tests.
+const posts = (await getPublishedPosts()).filter((p) => isResearchType(p.data.type));
+const counts = [...new Set(posts.map((p) => p.data.type))].map((t) => ({
+  label: typeLabel(t),
+  n: posts.filter((p) => p.data.type === t).length,
+}));
+---
+
+<BaseLayout
+  title="Experiments"
+  description="Experiments, benchmarks and reproductions on retrieval, LLM evaluation and agent reliability, each with its setup, numbers and verdict."
+>
+  <div class="mx-auto px-6 py-16" style="max-width: var(--content-max);">
+    <header class="reveal">
+      <h1 class="text-3xl font-bold tracking-tight text-ink sm:text-4xl">Experiments</h1>
+      <p class="mt-3 max-w-2xl text-muted">
+        Posts built around a measured result: a stated claim, a fixed setup, the numbers with
+        their sample size or interval, and a verdict. Null results count too.
+      </p>
+      {
+        counts.length > 0 && (
+          <p class="mt-4 font-mono text-xs text-faint">
+            {counts.map((c) => `${c.n} ${c.label.toLowerCase()}${c.n === 1 ? "" : "s"}`).join(" · ")}
+          </p>
+        )
+      }
+    </header>
+
+    <div
+      class="mt-10 grid gap-5"
+      style="grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));"
+    >
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+    {posts.length === 0 && <p class="py-16 text-faint">No experiments published yet.</p>}
+  </div>
+</BaseLayout>

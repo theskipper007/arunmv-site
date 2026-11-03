@@ -10,7 +10,7 @@ const { posts } = Astro.props;
 {
   posts.length > 0 && (
     <section aria-label="Related posts" class="mt-12">
-      <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Related reading</h2>
+      <h2 class="section-label">Related reading</h2>
       <div class="mt-4 grid gap-4 sm:grid-cols-3">
         {posts.map((post) => (
           <a

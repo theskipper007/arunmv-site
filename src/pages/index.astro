@@ -3,7 +3,6 @@ import { ArrowRight } from "@lucide/astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import FeaturedHero from "../components/content/FeaturedHero.astro";
 import PostListItem from "../components/content/PostListItem.astro";
-import TrustStrip from "../components/content/TrustStrip.astro";
 import AboutPreview from "../components/content/AboutPreview.astro";
 import BuildInProgress from "../components/content/BuildInProgress.astro";
 import GithubIcon from "../components/ui/icons/GithubIcon.astro";
@@ -52,7 +51,7 @@ const lab = posts.filter((p) => LAB_TYPES.includes(p.data.type)).slice(0, 3);
       <div class="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
         <a
           href="/blog"
-          class="inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-ink px-6 py-3 text-sm font-medium text-paper no-underline transition-transform hover:-translate-y-0.5"
+          class="btn-fx inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-ink px-6 py-3 text-sm font-medium text-paper no-underline hover:-translate-y-0.5"
         >
           Read the writing <ArrowRight size={16} stroke-width={2} />
         </a>
@@ -67,7 +66,7 @@ const lab = posts.filter((p) => LAB_TYPES.includes(p.data.type)).slice(0, 3);
           href={SITE.github}
           target="_blank"
           rel="me noopener"
-          class="inline-flex items-center gap-2 text-sm font-medium text-muted no-underline transition-colors hover:text-ink"
+          class="btn-fx inline-flex items-center gap-2 text-sm font-medium text-muted no-underline hover:text-ink"
         >
           <GithubIcon size={18} stroke-width={1.5} /> GitHub
         </a>
@@ -75,13 +74,10 @@ const lab = posts.filter((p) => LAB_TYPES.includes(p.data.type)).slice(0, 3);
     </div>
   </section>
 
-  {/* ── Trust strip ─────────────────────────────────────────────────── */}
-  <TrustStrip />
-
-  {/* ── Writing: one featured + a calm text list ────────────────────── */}
+  {/* ── Writing: one featured + a list with cover thumbnails ─────────── */}
   <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
     <div class="flex items-baseline justify-between">
-      <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Writing</h2>
+      <h2 class="section-label">Writing</h2>
       <a href="/blog" class="font-mono text-xs text-muted no-underline hover:text-accent">all →</a>
     </div>
 
@@ -89,9 +85,9 @@ const lab = posts.filter((p) => LAB_TYPES.includes(p.data.type)).slice(0, 3);
       featured && (
         <div class="mt-5 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <FeaturedHero post={featured} />
-          <div class="reveal flex flex-col divide-y divide-border">
+          <div class="reveal flex flex-col">
             {recent.map((post) => (
-              <PostListItem post={post} />
+              <PostListItem post={post} thumb />
             ))}
           </div>
         </div>
@@ -105,8 +101,8 @@ const lab = posts.filter((p) => LAB_TYPES.includes(p.data.type)).slice(0, 3);
     lab.length > 0 && (
       <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
         <div class="flex items-baseline justify-between">
-          <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Experiments &amp; benchmarks</h2>
-          <a href="/blog?type=experiment" class="font-mono text-xs text-muted no-underline hover:text-accent">
+          <h2 class="section-label">Experiments &amp; benchmarks</h2>
+          <a href="/experiments" class="font-mono text-xs text-muted no-underline hover:text-accent">
             all →
           </a>
         </div>
@@ -143,7 +139,7 @@ const lab = posts.filter((p) => LAB_TYPES.includes(p.data.type)).slice(0, 3);
   {/* ── Selected work ───────────────────────────────────────────────── */}
   <section class="mx-auto px-6 py-10" style="max-width: var(--content-max);">
     <div class="flex items-baseline justify-between">
-      <h2 class="font-mono text-xs uppercase tracking-widest text-faint">Selected work</h2>
+      <h2 class="section-label">Selected work</h2>
       <a href="/projects" class="font-mono text-xs text-muted no-underline hover:text-accent">
         all →
       </a>

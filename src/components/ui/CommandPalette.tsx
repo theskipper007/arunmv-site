@@ -3,7 +3,8 @@ import { Search, FileText, ArrowRight } from "lucide-react";
 
 const NAV = [
   { label: "Home", href: "/" },
-  { label: "Blog", href: "/blog" },
+  { label: "Writing", href: "/blog" },
+  { label: "Experiments", href: "/experiments" },
   { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
 ];

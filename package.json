@@ -12,7 +12,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "newsletter": "node --env-file-if-exists=.env.local scripts/newsletter-send.mjs",
-    "newsletter:setup": "node --env-file-if-exists=.env.local scripts/newsletter-setup.mjs"
+    "newsletter:setup": "node --env-file-if-exists=.env.local scripts/newsletter-setup.mjs",
+    "newsletter:list": "node --env-file-if-exists=.env.local scripts/newsletter-list.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^6.0.3",

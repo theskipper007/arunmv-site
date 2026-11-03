@@ -17,7 +17,15 @@ import SubscribeForm from "./SubscribeForm.astro";
 </dialog>
 
 <style>
+  /* Tailwind's preflight zeroes every margin, which removes the browser's
+   * `margin: auto` centring for modal dialogs; put it back. */
   .nl-dialog {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    height: fit-content;
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
     width: min(30rem, calc(100vw - 2rem));
     padding: 1.75rem;
     border: 1px solid var(--color-border);

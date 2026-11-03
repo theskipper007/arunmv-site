@@ -1,0 +1,80 @@
+name: Send newsletter after production publish
+
+on:
+  deployment_status:
+
+permissions:
+  contents: write
+  deployments: read
+
+concurrency:
+  group: newsletter-production-publish
+  cancel-in-progress: false
+
+jobs:
+  send-newsletter:
+    # Vercel sets deployment.ref to the commit SHA, not the branch name, so filter on
+    # the environment: only main deploys to Production.
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the deployed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      # A push can carry several commits, so compare against the last production
+      # deployment that succeeded rather than just the parent commit.
+      - name: Find the previous successful production deployment
+        id: base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYMENT_SHA: ${{ github.event.deployment.sha }}
+          CURRENT_ID: ${{ github.event.deployment.id }}
+        run: |
+          base=""
+          for row in $(gh api "repos/${{ github.repository }}/deployments?environment=Production&per_page=30" --jq '.[] | "\(.id),\(.sha)"'); do
+            id="${row%%,*}"; sha="${row#*,}"
+            [ "$id" -ge "$CURRENT_ID" ] && continue
+            [ "$sha" = "$DEPLOYMENT_SHA" ] && continue
+            state=$(gh api "repos/${{ github.repository }}/deployments/$id/statuses?per_page=1" --jq '.[0].state')
+            if [ "$state" = "success" ]; then base="$sha"; break; fi
+          done
+          echo "Previous successful production deployment: ${base:-none}"
+          echo "sha=$base" >> "$GITHUB_OUTPUT"
+
+      - name: Send newsletter for newly published posts
+        run: node scripts/newsletter-publish.mjs "$DEPLOYMENT_SHA" "$BASE_SHA"
+        env:
+          DEPLOYMENT_SHA: ${{ github.event.deployment.sha }}
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_SEGMENT_ID: ${{ secrets.RESEND_SEGMENT_ID }}
+          RESEND_TOPIC_TECHNICAL: ${{ secrets.RESEND_TOPIC_TECHNICAL }}
+          RESEND_TOPIC_PERSONAL: ${{ secrets.RESEND_TOPIC_PERSONAL }}
+          NEWSLETTER_FROM: ${{ secrets.NEWSLETTER_FROM }}
+
+      - name: Save the newsletter archive
+        run: |
+          if git diff --quiet -- src/data/newsletter-sent.json; then
+            echo "No newsletter archive changes to save."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/newsletter-sent.json
+          git commit -m "chore: record newsletter broadcast"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main

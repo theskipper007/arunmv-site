@@ -1,56 +1,491 @@
 ---
-import PageLayout from "../../layouts/PageLayout.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CoverArt from "../../components/content/CoverArt.astro";
+import TypeTag from "../../components/content/TypeTag.astro";
+import { getPublishedPosts, categoryAudience, formatDate } from "../../lib/collections";
 
-// Static page; /api/confirm redirects here with ?status=ok|expired|invalid|error.
+// Static page; /api/confirm redirects here with ?status=ok|expired|invalid|error&list=technical|all.
 const STATES = {
   ok: {
-    title: "You're subscribed",
-    body: "Thanks for confirming. The next post will land in your inbox.",
+    eyebrow: "Newsletter · confirmed",
+    title: "Thank you for subscribing.",
+    body: "Genuinely. Letting someone into your inbox is a real bit of trust, and I don't take it lightly. I'll only write when there's something worth your time: a result I measured, a build that works, or an idea I've actually tested.",
   },
   expired: {
+    eyebrow: "Newsletter · link expired",
     title: "That link has expired",
     body: "Confirm links work for 48 hours. Subscribe again and you'll get a fresh one.",
   },
   invalid: {
+    eyebrow: "Newsletter · link not valid",
     title: "That link doesn't work",
     body: "It may have been cut off or edited. Subscribe again and you'll get a fresh one.",
   },
   error: {
+    eyebrow: "Newsletter · couldn't save",
     title: "Something went wrong on my side",
     body: "Your link is fine, but saving the subscription failed. Click the link in your email again in a minute.",
   },
 };
+
+// "Start reading" picks: the three newest technical posts.
+const picks = (await getPublishedPosts())
+  .filter((p) => categoryAudience(p.data.category) === "technical")
+  .slice(0, 3);
 ---
 
-<PageLayout title="Newsletter" description="Newsletter subscription status." prose noindex>
-  <p class="font-mono text-xs uppercase tracking-widest text-faint">Newsletter</p>
-  {
-    Object.entries(STATES).map(([key, s]) => (
-      <div data-state={key} hidden>
-        <h1 class="mt-3 font-serif text-4xl font-semibold tracking-tight text-ink">{s.title}</h1>
-        <p class="mt-4 text-lg text-muted">{s.body}</p>
-        {key !== "ok" && key !== "error" && (
-          <p class="mt-6">
-            <a href="/newsletter">Subscribe again →</a>
-          </p>
-        )}
+<BaseLayout title="Newsletter" description="Newsletter subscription status." noindex>
+  <section class="confirm-band">
+    <canvas class="confetti" aria-hidden="true" data-confetti></canvas>
+    <div class="mx-auto px-6 pb-12 pt-16 sm:pt-24" style="max-width: var(--content-max);">
+      {
+        Object.entries(STATES).map(([key, s]) => (
+          <div data-state={key} hidden class="confirm-state">
+            <div class:list={["seal", key === "ok" ? "seal--ok" : "seal--warn"]} aria-hidden="true">
+              <svg viewBox="0 0 120 120" width="120" height="120">
+                <circle class="seal-ring" cx="60" cy="60" r="52" />
+                {key === "ok" ? (
+                  <path class="seal-mark" d="M38 62 l15 15 l30 -34" />
+                ) : (
+                  <>
+                    <path class="seal-mark" d="M60 36 v32" />
+                    <circle class="seal-dot" cx="60" cy="82" r="4" />
+                  </>
+                )}
+              </svg>
+              {key === "ok" && (
+                <span class="seal-orbit">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              )}
+            </div>
+            <p class="confirm-eyebrow">{s.eyebrow}</p>
+            <h1 class="confirm-title">{s.title}</h1>
+            <p class="confirm-body">
+              {s.body}
+            </p>
+            {key === "ok" && (
+              <p class="confirm-list">
+                You'll get <strong class="font-semibold text-ink" data-list-label>technical posts</strong>, the day they go live.
+              </p>
+            )}
+            {key === "ok" && (
+              <p class="signoff">
+                Glad you're here,
+                <span class="signoff-name">Arun</span>
+              </p>
+            )}
+            {key !== "ok" && key !== "error" && (
+              <a href="/newsletter" class="btn-fx mt-8 inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-ink px-6 py-3 text-sm font-medium text-paper no-underline">
+                Subscribe again →
+              </a>
+            )}
+          </div>
+        ))
+      }
+      {/* Every state starts hidden so a failed or missing ?status= never reads as success. */}
+      <noscript>
+        <p class="confirm-eyebrow">Newsletter</p>
+        <h1 class="confirm-title">Subscription status</h1>
+        <p class="confirm-body">Check your inbox: if you're subscribed, the next post will arrive there.</p>
+      </noscript>
+    </div>
+  </section>
+
+  <div class="mx-auto px-6" style="max-width: var(--content-max);">
+    <div class="perks" data-only-ok hidden>
+      <div class="perk">
+        <span class="perk-ico" aria-hidden="true">✉</span>
+        <p class="perk-h">One email per post</p>
+        <p class="perk-p">Only when something new is published. Never a digest of filler.</p>
       </div>
-    ))
+      <div class="perk">
+        <span class="perk-ico" aria-hidden="true">#</span>
+        <p class="perk-h">The number up front</p>
+        <p class="perk-p">Experiments lead with the headline result, so you know if it's worth opening.</p>
+      </div>
+      <div class="perk">
+        <span class="perk-ico" aria-hidden="true">↩</span>
+        <p class="perk-h">Easy to leave</p>
+        <p class="perk-p">Every email has a one-click unsubscribe and a link to switch topics.</p>
+      </div>
+    </div>
+    <p class="tip" data-only-ok hidden>
+      Tip: add <span class="font-mono text-ink">newsletter@arun-mv.com</span> to your contacts so it
+      never lands in spam.
+    </p>
+
+    <section class="mt-14" aria-labelledby="start-reading">
+      <div class="flex items-baseline justify-between">
+        <h2 id="start-reading" class="section-label">Start reading</h2>
+        <a href="/blog" class="font-mono text-xs text-muted no-underline hover:text-accent">all →</a>
+      </div>
+      <div class="mt-5 grid gap-5" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));">
+        {
+          picks.map((post, i) => (
+            <a href={`/blog/${post.id}`} class="pick group no-underline" style={`--i:${i}`}>
+              <div class="overflow-hidden rounded-[var(--radius-md)]">
+                <div class="transition-transform duration-500 group-hover:scale-[1.04]">
+                  <CoverArt
+                    category={post.data.category}
+                    image={post.data.heroImage}
+                    video={post.data.heroVideo}
+                    alt=""
+                    ratio="16 / 9"
+                    position="left"
+                    label={false}
+                  />
+                </div>
+              </div>
+              <div class="mt-3 flex flex-wrap items-center gap-2">
+                <TypeTag type={post.data.type} />
+                <span class="font-mono text-xs text-faint">{formatDate(post.data.pubDate)}</span>
+              </div>
+              <p class="mt-2 font-semibold leading-snug tracking-tight text-ink transition-colors group-hover:text-accent">
+                {post.data.title}
+              </p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Same dot grid + aurora as the home hero, so this lands as part of the site. */
+  .confirm-band {
+    position: relative;
+    isolation: isolate;
+    overflow-x: clip;
+    text-align: center;
   }
-  {/* Every state starts hidden so a failed or missing ?status= never reads as success. */}
-  <noscript>
-    <h1 class="mt-3 font-serif text-4xl font-semibold tracking-tight text-ink">Subscription status</h1>
-    <p class="mt-4 text-lg text-muted">Check your inbox: if you're subscribed, the next post will arrive there.</p>
-  </noscript>
-  <p class="mt-8"><a href="/blog">Read the writing →</a></p>
-</PageLayout>
+  .confirm-band::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--color-ink) 9%, transparent) 1px,
+      transparent 1.5px
+    );
+    background-size: 24px 24px;
+    mask-image: radial-gradient(70% 90% at 50% 30%, #000 30%, transparent 75%);
+    pointer-events: none;
+  }
+  .confirm-band::after {
+    content: "";
+    position: absolute;
+    inset: -20% -10% auto;
+    height: 140%;
+    z-index: -2;
+    background: radial-gradient(
+      36% 42% at 50% 30%,
+      color-mix(in oklab, var(--color-accent) 16%, transparent),
+      transparent 70%
+    );
+    filter: blur(40px);
+    pointer-events: none;
+  }
+  .confetti {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .confirm-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .confirm-state[hidden] {
+    display: none;
+  }
+
+  /* Seal: ring + check (or "!") drawn in, with three orbiting sparks. */
+  .seal {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1.75rem;
+    --seal: var(--color-accent);
+  }
+  .seal--warn {
+    --seal: #c9821b;
+  }
+  .seal svg {
+    display: block;
+    overflow: visible;
+  }
+  .seal-ring {
+    fill: color-mix(in oklab, var(--seal) 10%, transparent);
+    stroke: var(--seal);
+    stroke-width: 3;
+  }
+  .seal-mark {
+    fill: none;
+    stroke: var(--seal);
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .seal-dot {
+    fill: var(--seal);
+  }
+  .seal-orbit {
+    position: absolute;
+    inset: -14px;
+  }
+  .seal-orbit i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    margin: -4px;
+    border-radius: 50%;
+    background: var(--seal);
+  }
+  .seal-orbit i:nth-child(2) {
+    background: #e0a458;
+    width: 6px;
+    height: 6px;
+    margin: -3px;
+  }
+  .seal-orbit i:nth-child(3) {
+    background: #6d63f1;
+    width: 5px;
+    height: 5px;
+    margin: -2.5px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .confirm-state:not([hidden]) .seal {
+      animation: seal-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .confirm-state:not([hidden]) .seal-ring {
+      stroke-dasharray: 330;
+      animation: seal-draw 700ms 150ms var(--ease) both;
+    }
+    .confirm-state:not([hidden]) .seal-mark {
+      stroke-dasharray: 90;
+      animation: seal-draw 450ms 600ms var(--ease) both;
+    }
+    .seal-orbit i:nth-child(1) {
+      animation: orbit 5.5s linear infinite;
+    }
+    .seal-orbit i:nth-child(2) {
+      animation: orbit 7s linear infinite reverse;
+    }
+    .seal-orbit i:nth-child(3) {
+      animation: orbit 9s linear infinite;
+      animation-delay: -3s;
+    }
+    .confirm-state:not([hidden]) > :not(.seal) {
+      animation: rise 600ms var(--ease) both;
+    }
+    .confirm-state:not([hidden]) > :nth-child(2) { animation-delay: 250ms; }
+    .confirm-state:not([hidden]) > :nth-child(3) { animation-delay: 350ms; }
+    .confirm-state:not([hidden]) > :nth-child(4) { animation-delay: 450ms; }
+    .confirm-state:not([hidden]) > :nth-child(5) { animation-delay: 550ms; }
+    .confirm-state:not([hidden]) > :nth-child(6) { animation-delay: 800ms; }
+    .pick {
+      animation: rise 600ms calc(700ms + var(--i) * 90ms) var(--ease) both;
+    }
+    @keyframes seal-pop {
+      from { scale: 0.6; opacity: 0; }
+      to { scale: 1; opacity: 1; }
+    }
+    @keyframes seal-draw {
+      from { stroke-dashoffset: var(--len, 330); }
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes orbit {
+      from { transform: rotate(0deg) translateX(74px) rotate(0deg); }
+      to { transform: rotate(360deg) translateX(74px) rotate(-360deg); }
+    }
+    @keyframes rise {
+      from { opacity: 0; translate: 0 12px; }
+      to { opacity: 1; translate: 0 0; }
+    }
+  }
+  .seal-mark {
+    --len: 90;
+  }
+
+  .confirm-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+  .confirm-title {
+    margin-top: 0.75rem;
+    font-family: var(--font-serif);
+    font-size: clamp(2.5rem, 1.6rem + 4vw, 4.5rem);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    color: var(--color-ink);
+  }
+  .confirm-body {
+    margin: 1.1rem auto 0;
+    max-width: 36rem;
+    font-size: 1.125rem;
+    line-height: 1.65;
+    color: var(--color-muted);
+  }
+
+  .confirm-list {
+    margin-top: 0.9rem;
+    font-size: 0.95rem;
+    color: var(--color-muted);
+  }
+  .signoff {
+    margin-top: 1.5rem;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--color-muted);
+  }
+  .signoff-name {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    rotate: -3deg;
+  }
+
+  .perks {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  }
+  .perks[hidden],
+  .tip[hidden] {
+    display: none;
+  }
+  .perk {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    padding: 1.1rem 1.2rem;
+    transition:
+      translate 250ms var(--ease),
+      border-color 250ms var(--ease);
+  }
+  .perk:hover {
+    translate: 0 -3px;
+    border-color: color-mix(in oklab, var(--color-accent) 40%, transparent);
+  }
+  .perk-ico {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-md);
+    background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+  .perk-h {
+    margin-top: 0.75rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .perk-p {
+    margin-top: 0.25rem;
+    font-size: 0.9rem;
+    color: var(--color-muted);
+  }
+  .tip {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--color-muted);
+  }
+  .pick {
+    display: block;
+    color: inherit;
+  }
+</style>
 
 <script>
+  // Pick the state from ?status=, personalise the list label, and celebrate a
+  // confirmed subscription with one short confetti burst.
+  function confetti(canvas: HTMLCanvasElement) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    const colors = ["#C25A3C", "#E0A458", "#6D63F1", "#22D3EE", "#ECEBE6"];
+    const originY = Math.min(220, h * 0.35);
+    const parts = Array.from({ length: 140 }, () => {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1;
+      const v = 5 + Math.random() * 7;
+      return {
+        x: w / 2,
+        y: originY,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v,
+        r: 3 + Math.random() * 4,
+        rot: Math.random() * Math.PI,
+        vr: (Math.random() - 0.5) * 0.3,
+        c: colors[(Math.random() * colors.length) | 0],
+        life: 0,
+      };
+    });
+    const start = performance.now();
+    const tick = (t: number) => {
+      const elapsed = t - start;
+      ctx.clearRect(0, 0, w, h);
+      for (const p of parts) {
+        p.vy += 0.22;
+        p.vx *= 0.99;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+        ctx.globalAlpha = Math.max(0, 1 - elapsed / 2200);
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.c;
+        ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+        ctx.restore();
+      }
+      if (elapsed < 2200) requestAnimationFrame(tick);
+      else ctx.clearRect(0, 0, w, h);
+    };
+    requestAnimationFrame(tick);
+  }
+
   function showState() {
-    const status = new URL(location.href).searchParams.get("status") ?? "invalid";
+    const params = new URL(location.href).searchParams;
+    const status = params.get("status") ?? "invalid";
     const blocks = document.querySelectorAll<HTMLElement>("[data-state]");
     const known = [...blocks].some((b) => b.dataset.state === status);
-    blocks.forEach((b) => (b.hidden = b.dataset.state !== (known ? status : "invalid")));
+    const shown = known ? status : "invalid";
+    blocks.forEach((b) => (b.hidden = b.dataset.state !== shown));
+    document.querySelectorAll<HTMLElement>("[data-only-ok]").forEach((el) => (el.hidden = shown !== "ok"));
+
+    if (shown === "ok") {
+      const label = document.querySelector("[data-list-label]");
+      if (label && params.get("list") === "all") label.textContent = "every post, technical and personal";
+      const canvas = document.querySelector<HTMLCanvasElement>("[data-confetti]");
+      if (canvas) setTimeout(() => confetti(canvas), 500);
+    }
   }
   showState();
   document.addEventListener("astro:page-load", showState);

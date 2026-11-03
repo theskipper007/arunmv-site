@@ -71,11 +71,6 @@ const env = (name) => {
 };
 const topicName = PERSONAL.has(fm.category) ? "RESEND_TOPIC_PERSONAL" : "RESEND_TOPIC_TECHNICAL";
 
-if (dryRun) {
-  console.log(`Subject: ${subject}\nTopic:   ${topicName}\n\n${text}`);
-  process.exit(0);
-}
-
 async function call(path, body) {
   const res = await fetch(`https://api.resend.com${path}`, {
     method: "POST",
@@ -87,8 +82,12 @@ async function call(path, body) {
   return data;
 }
 
+// No process.exit() after a fetch: on Windows it can trip a libuv assertion
+// while sockets are closing. Let the event loop drain instead.
 const from = process.env.NEWSLETTER_FROM ?? "Arun MV <newsletter@arun-mv.com>";
-if (testTo) {
+if (dryRun) {
+  console.log(`Subject: ${subject}\nTopic:   ${topicName}\n\n${text}`);
+} else if (testTo) {
   const r = await call("/emails", {
     from,
     to: [testTo],
@@ -97,19 +96,18 @@ if (testTo) {
     text: text.replace("{{{RESEND_UNSUBSCRIBE_URL}}}", "#"),
   });
   console.log(`Test email sent to ${testTo} (${r.id}).`);
-  process.exit(0);
+} else {
+  const r = await call("/broadcasts", {
+    name: slug,
+    segment_id: env("RESEND_SEGMENT_ID"),
+    topic_id: env(topicName),
+    from,
+    subject,
+    html,
+    text,
+    send: true,
+  });
+  sent.push({ slug, title: fm.title, date: new Date().toISOString().slice(0, 10), broadcastId: r.id });
+  writeFileSync(LOG, JSON.stringify(sent, null, 2) + "\n");
+  console.log(`Broadcast ${r.id} sent for ${slug}. Logged in src/data/newsletter-sent.json — commit it.`);
 }
-
-const r = await call("/broadcasts", {
-  name: slug,
-  segment_id: env("RESEND_SEGMENT_ID"),
-  topic_id: env(topicName),
-  from,
-  subject,
-  html,
-  text,
-  send: true,
-});
-sent.push({ slug, title: fm.title, date: new Date().toISOString().slice(0, 10), broadcastId: r.id });
-writeFileSync(LOG, JSON.stringify(sent, null, 2) + "\n");
-console.log(`Broadcast ${r.id} sent for ${slug}. Logged in src/data/newsletter-sent.json — commit it.`);
